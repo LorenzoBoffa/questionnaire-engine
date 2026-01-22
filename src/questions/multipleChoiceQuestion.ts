@@ -1,4 +1,4 @@
-import type { MultipleChoiceQuestion as MultipleChoiceQuestionData, Question } from '../types/questions';
+import type { MultipleChoiceQuestion as MultipleChoiceQuestionData, Question, MultipleChoiceOption } from '../types/questions';
 import type { AnswerValue, ValidationResult, ValidationError } from '../types';
 import type { BaseQuestion } from './base';
 
@@ -79,7 +79,7 @@ export function serializeMultipleChoiceQuestion(question: BaseQuestion, original
   };
 }
 
-export function getMultipleChoiceOptions(question: BaseQuestion): string[] {
+export function getMultipleChoiceOptions(question: BaseQuestion): string[] | MultipleChoiceOption[] {
   const serialized = question.serialize();
   if (serialized.type === 'multiple-choice') {
     return serialized.options;
@@ -88,5 +88,10 @@ export function getMultipleChoiceOptions(question: BaseQuestion): string[] {
 }
 
 export function isValidMultipleChoiceOption(value: string, question: MultipleChoiceQuestionData): boolean {
-  return question.options.includes(value);
+  return question.options.some(option => {
+    if (typeof option === 'string') {
+      return option === value;
+    }
+    return option.value === value;
+  });
 }

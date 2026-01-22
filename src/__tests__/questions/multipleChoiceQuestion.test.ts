@@ -207,8 +207,10 @@ describe('MultipleChoiceQuestion', () => {
       expect(serialized.id).toBe('q1');
       expect(serialized.type).toBe('multiple-choice');
       expect(serialized.label).toBe('Test Question');
-      expect(serialized.options).toEqual(['Option A', 'Option B']);
-      expect(serialized.defaultValue).toBe('Option A');
+      if (serialized.type === 'multiple-choice') {
+        expect(serialized.options).toEqual(['Option A', 'Option B']);
+        expect(serialized.defaultValue).toBe('Option A');
+      }
       expect(serialized.required).toBe(true);
       expect(serialized.visible).toBe(false);
     });

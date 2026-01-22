@@ -1,0 +1,178 @@
+{
+  "id": "validation-test",
+  "title": "Validation Test",
+  "sections": [
+    {
+      "id": "test-section",
+      "title": "Validation Test Section",
+      "questions": [
+        {
+          "id": "required-test",
+          "type": "text",
+          "label": "Required Field",
+          "required": true
+        },
+        {
+          "id": "minLength-test",
+          "type": "text",
+          "label": "Min Length (minLength: 5)",
+          "required": false,
+          "validation": [
+            { "type": "minLength", "value": 5 }
+          ]
+        },
+        {
+          "id": "maxLength-test",
+          "type": "text",
+          "label": "Max Length (maxLength: 10)",
+          "required": false,
+          "validation": [
+            { "type": "maxLength", "value": 10 }
+          ]
+        },
+        {
+          "id": "min-test",
+          "type": "number",
+          "label": "Min Value (min: 18)",
+          "required": false,
+          "validation": [
+            { "type": "min", "value": 18 }
+          ]
+        },
+        {
+          "id": "max-test",
+          "type": "number",
+          "label": "Max Value (max: 100)",
+          "required": false,
+          "validation": [
+            { "type": "max", "value": 100 }
+          ]
+        },
+        {
+          "id": "minMaxLength-test",
+          "type": "text",
+          "label": "Min & Max Length (5-10 chars)",
+          "required": false,
+          "validation": [
+            { "type": "minLength", "value": 5 },
+            { "type": "maxLength", "value": 10 }
+          ]
+        },
+        {
+          "id": "minMax-test",
+          "type": "number",
+          "label": "Min & Max Value (18-100)",
+          "required": false,
+          "validation": [
+            { "type": "min", "value": 18 },
+            { "type": "max", "value": 100 }
+          ]
+        },
+        {
+          "id": "required-minLength-test",
+          "type": "text",
+          "label": "Required + Min Length (minLength: 3)",
+          "required": true,
+          "validation": [
+            { "type": "minLength", "value": 3 }
+          ]
+        },
+        {
+          "id": "required-minMax-test",
+          "type": "number",
+          "label": "Required + Min & Max (18-100)",
+          "required": true,
+          "validation": [
+            { "type": "min", "value": 18 },
+            { "type": "max", "value": 100 }
+          ]
+        },
+        {
+          "id": "all-text-validations",
+          "type": "text",
+          "label": "All Text Validations (required + 5-20 chars)",
+          "required": true,
+          "validation": [
+            { "type": "minLength", "value": 5 },
+            { "type": "maxLength", "value": 20 }
+          ]
+        },
+        {
+          "id": "all-number-validations",
+          "type": "number",
+          "label": "All Number Validations (required + 10-50)",
+          "required": true,
+          "validation": [
+            { "type": "min", "value": 10 },
+            { "type": "max", "value": 50 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "actions-test-section",
+      "title": "Actions Test Section",
+      "questions": [
+        {
+          "id": "age-question",
+          "type": "number",
+          "label": "What is your age? (if >= 18 show adult-question, if >= 65 show also senior-question)",
+          "required": false
+        },
+        {
+          "id": "adult-question",
+          "type": "text",
+          "label": "Adult-specific question (shown when age >= 18)",
+          "required": false,
+          "visible": false
+        },
+        {
+          "id": "senior-question",
+          "type": "text",
+          "label": "Senior-specific question (shown when age >= 65)",
+          "required": false,
+          "visible": false
+        },
+        {
+          "id": "has-license",
+          "type": "multiple-choice",
+          "label": "Do you have a driver's license? (if yes show license-number)",
+          "required": false,
+          "options": [
+            "Yes",
+            "No"
+          ]
+        },
+        {
+          "id": "license-number",
+          "type": "text",
+          "label": "License Number (shown when has-license = 'yes')",
+          "required": false,
+          "visible": false
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "show",
+      "condition": "age-question >= 18",
+      "target": "adult-question"
+    },
+    {
+      "type": "show",
+      "condition": "age-question >= 65",
+      "target": "senior-question"
+    },
+    {
+      "type": "show",
+      "condition": "has-license == 'Yes'",
+      "target": "license-number"
+    },
+    {
+      "type": "hide",
+      "condition": "has-license == 'No'",
+      "target": "license-number"
+    }
+  ]
+}

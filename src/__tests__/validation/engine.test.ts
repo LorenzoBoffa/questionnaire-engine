@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validateQuestion, validateAll, getErrorsForQuestion, hasErrors } from '../../validation/engine';
 import { createTextQuestion, createNumberQuestion, createMultipleChoiceQuestion } from '../fixtures/helpers';
 import type { AnswerStore } from '../../types/answers';
+import type { ValidationResult } from '../../types/validation';
 
 describe('Validation Engine', () => {
   describe('validateQuestion', () => {
@@ -143,7 +144,7 @@ describe('Validation Engine', () => {
 
   describe('getErrorsForQuestion', () => {
     it('should return errors for specific question', () => {
-      const result = {
+      const result: ValidationResult = {
         isValid: false,
         errors: [
           { questionId: 'q1', rule: 'required', message: 'Required' },
@@ -157,7 +158,7 @@ describe('Validation Engine', () => {
     });
 
     it('should return empty array when no errors for question', () => {
-      const result = {
+      const result: ValidationResult = {
         isValid: false,
         errors: [{ questionId: 'q2', rule: 'required', message: 'Required' }],
       };
@@ -169,7 +170,7 @@ describe('Validation Engine', () => {
 
   describe('hasErrors', () => {
     it('should return true when validation has errors', () => {
-      const result = {
+      const result: ValidationResult = {
         isValid: false,
         errors: [{ questionId: 'q1', rule: 'required', message: 'Required' }],
       };
@@ -177,7 +178,7 @@ describe('Validation Engine', () => {
     });
 
     it('should return false when validation is valid', () => {
-      const result = {
+      const result: ValidationResult = {
         isValid: true,
         errors: [],
       };
@@ -185,7 +186,7 @@ describe('Validation Engine', () => {
     });
 
     it('should return false when no errors', () => {
-      const result = {
+      const result: ValidationResult = {
         isValid: false,
         errors: [],
       };

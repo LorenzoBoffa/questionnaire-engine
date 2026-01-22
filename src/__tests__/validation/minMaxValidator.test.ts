@@ -179,5 +179,23 @@ describe('MinMaxValidator', () => {
 
       expect(result.errors[0].message).toBe('Too short');
     });
+
+    it('should fail validation for empty string with minLength', () => {
+      const rule: ValidationRule = { type: 'minLength', value: 5 };
+      const question = createTextQuestion({ id: 'q1' });
+      const result = validateMinMax('', rule, question);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0].rule).toBe('minLength');
+    });
+
+    it('should fail validation for null/undefined with minLength', () => {
+      const rule: ValidationRule = { type: 'minLength', value: 5 };
+      const question = createTextQuestion({ id: 'q1' });
+
+      expect(validateMinMax(null, rule, question).isValid).toBe(false);
+      expect(validateMinMax(undefined, rule, question).isValid).toBe(false);
+    });
   });
 });

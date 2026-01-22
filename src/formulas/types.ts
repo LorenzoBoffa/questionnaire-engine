@@ -1,7 +1,7 @@
 import type { AnswerStore } from '../types/answers';
 import type { Formula, FormulaResult } from '../types/questionnaire';
 
-export type ExpressionValue = number | boolean | null;
+export type ExpressionValue = number | boolean | string | null;
 
 export interface EvaluationContext {
   answers: AnswerStore;

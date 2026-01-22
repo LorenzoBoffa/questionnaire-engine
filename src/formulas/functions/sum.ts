@@ -2,7 +2,7 @@ import type { FormulaFunction, EvaluationContext, ExpressionValue } from '../typ
 import { resolveFieldReference } from '../utils';
 
 export function createSumFunction(): FormulaFunction {
-  return (args: (number | string | null)[], context: EvaluationContext): ExpressionValue => {
+  return (args: (number | string | null | undefined)[], context: EvaluationContext): ExpressionValue => {
     let sum = 0;
     let hasValidValue = false;
 
@@ -20,8 +20,16 @@ export function createSumFunction(): FormulaFunction {
         } else {
           const fieldValue = resolveFieldReference(arg, context);
           if (fieldValue !== null) {
-            numValue = fieldValue;
-            hasValidValue = true;
+            if (typeof fieldValue === 'number') {
+              numValue = fieldValue;
+              hasValidValue = true;
+            } else if (typeof fieldValue === 'string') {
+              const parsedField = parseFloat(fieldValue);
+              if (!isNaN(parsedField)) {
+                numValue = parsedField;
+                hasValidValue = true;
+              }
+            }
           }
         }
       } else if (arg === null || arg === undefined) {

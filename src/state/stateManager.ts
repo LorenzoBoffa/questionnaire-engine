@@ -7,6 +7,7 @@ import type { BaseQuestion } from '../questions/base';
 import { createAnswerStore } from './answerStore';
 import { createQuestion, setQuestionVisible } from '../questions';
 import { createActionEngine, defaultActionRegistry } from '../actions';
+import { validateQuestion } from '../validation/engine';
 
 export function createStateManager(
   dependencies: StateManagerDependencies
@@ -62,12 +63,17 @@ export function createStateManager(
       actionEngine.executeAll(answerStore.getAllAnswers());
     }
 
+    const questions = getCurrentQuestions();
+    const answers = answerStore.getAllAnswers();
+    validationResult = validationEngine.validateAll(questions, answers);
+
     notifySubscribers();
   }
 
   function setAnswer(questionId: string, value: AnswerValue): void {
+    console.log('[StateManager.setAnswer] Question:', questionId, 'Value:', value, 'Type:', typeof value);
     answerStore.setAnswer(questionId, value);
-    updateState();
+    updateState(questionId);
   }
 
   function getAnswer(questionId: string): AnswerValue | undefined {
@@ -136,13 +142,16 @@ export function createStateManager(
     };
   }
 
-  function updateState(): void {
+  function updateState(changedQuestionId?: string): void {
+    console.log('[StateManager.updateState] Changed question:', changedQuestionId);
     if (questionnaire?.actions) {
+      console.log('[StateManager.updateState] Actions count:', questionnaire.actions.length);
       const actionEngine = createActionEngine(
         formulaEngine,
         questionRegistry,
         defaultActionRegistry,
         (questionId: string, visible: boolean) => {
+          console.log('[StateManager.updateState] Visibility change callback:', questionId, 'visible:', visible);
           const baseQuestion = questionRegistry.get(questionId);
           if (baseQuestion) {
             const updated = setQuestionVisible(baseQuestion, visible);
@@ -151,9 +160,12 @@ export function createStateManager(
         }
       );
       for (const action of questionnaire.actions) {
+        console.log('[StateManager.updateState] Registering action:', action.type, 'Condition:', action.condition, 'Target:', action.target);
         actionEngine.registerAction(action);
       }
-      actionEngine.executeAll(answerStore.getAllAnswers());
+      const allAnswers = answerStore.getAllAnswers();
+      console.log('[StateManager.updateState] All answers before executeAll:', JSON.stringify(allAnswers, null, 2));
+      actionEngine.executeAll(allAnswers);
     }
 
     if (questionnaire?.formulas) {
@@ -161,6 +173,44 @@ export function createStateManager(
         questionnaire.formulas,
         answerStore.getAllAnswers()
       );
+    }
+
+    if (changedQuestionId) {
+      if (!validationResult) {
+        validationResult = { isValid: true, errors: [] };
+      }
+      
+      let question: Question | undefined;
+      const baseQuestion = questionRegistry.get(changedQuestionId);
+      if (baseQuestion) {
+        question = baseQuestion.serialize();
+      } else if (questionnaire) {
+        for (const section of questionnaire.sections) {
+          const found = section.questions.find(q => q.id === changedQuestionId);
+          if (found) {
+            question = found;
+            break;
+          }
+        }
+      }
+      
+      if (question) {
+        const value = answerStore.getAnswer(changedQuestionId);
+        const result = validateQuestion(question, value);
+        
+        const existingErrors = validationResult.errors.filter(e => e.questionId !== changedQuestionId);
+        const newErrors = result.errors;
+        const allErrors = [...existingErrors, ...newErrors];
+        
+        validationResult = {
+          isValid: allErrors.length === 0,
+          errors: allErrors,
+        };
+      }
+    } else {
+      const questions = getCurrentQuestions();
+      const answers = answerStore.getAllAnswers();
+      validationResult = validationEngine.validateAll(questions, answers);
     }
 
     notifySubscribers();

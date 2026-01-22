@@ -227,7 +227,7 @@ describe('JSON Loader', () => {
       const choiceQuestion = questionnaire.sections[0].questions.find(q => q.type === 'multiple-choice');
       expect(choiceQuestion).toBeDefined();
       expect(choiceQuestion!.type).toBe('multiple-choice');
-      if (choiceQuestion!.type === 'multiple-choice') {
+      if (choiceQuestion && choiceQuestion.type === 'multiple-choice') {
         expect(choiceQuestion.options).toBeDefined();
         expect(choiceQuestion.options.length).toBeGreaterThan(0);
       }

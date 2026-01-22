@@ -25,9 +25,14 @@ export interface NumberQuestion extends BaseQuestion {
   defaultValue?: number;
 }
 
+export interface MultipleChoiceOption {
+  value: string;
+  label: string;
+}
+
 export interface MultipleChoiceQuestion extends BaseQuestion {
   type: 'multiple-choice';
-  options: string[];
+  options: string[] | MultipleChoiceOption[];
   defaultValue?: string;
 }
 

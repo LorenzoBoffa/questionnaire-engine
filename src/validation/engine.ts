@@ -23,7 +23,8 @@ export function validateQuestion(question: Question, value: AnswerValue): Valida
     return { isValid: true, errors: [] };
   }
 
-  return validateValue(value, rules, question.id, question);
+  const result = validateValue(value, rules, question.id, question);
+  return result;
 }
 
 export function validateAll(questions: Question[], answers: AnswerStore): ValidationResult {

@@ -389,8 +389,27 @@ function parseValidationRules(data: any): ValidationRule[] {
   }
 
   if (normalized.validation) {
-    const minMaxRules = parseMinMaxRules(normalized.validation);
-    rules.push(...minMaxRules);
+    if (Array.isArray(normalized.validation)) {
+      for (const rule of normalized.validation) {
+        if (rule && typeof rule === 'object' && rule.type) {
+          if (rule.type === 'required') {
+            const requiredRule = parseRequiredRule(rule);
+            if (requiredRule) {
+              rules.push(requiredRule);
+            }
+          } else if (rule.type === 'min' || rule.type === 'max' || rule.type === 'minLength' || rule.type === 'maxLength') {
+            rules.push({
+              type: rule.type,
+              value: rule.value,
+              message: rule.message,
+            });
+          }
+        }
+      }
+    } else {
+      const minMaxRules = parseMinMaxRules(normalized.validation);
+      rules.push(...minMaxRules);
+    }
   } else if (normalized.min !== undefined || normalized.max !== undefined || normalized.minLength !== undefined || normalized.maxLength !== undefined) {
     const minMaxRules = parseMinMaxRules(normalized);
     rules.push(...minMaxRules);
@@ -413,6 +432,7 @@ function parseTextQuestion(data: any): Question {
     type: 'text',
     label: convertToString(data.label, 'label'),
     required: data.required === true,
+    visible: data.visible !== undefined ? data.visible === true : undefined,
     placeholder: data.placeholder ? convertToString(data.placeholder, 'placeholder') : undefined,
     defaultValue: data.defaultValue ? convertToString(data.defaultValue, 'defaultValue') : undefined,
     validation: validation.length > 0 ? validation : undefined,
@@ -427,6 +447,7 @@ function parseNumberQuestion(data: any): Question {
     type: 'number',
     label: convertToString(data.label, 'label'),
     required: data.required === true,
+    visible: data.visible !== undefined ? data.visible === true : undefined,
     min: data.min !== undefined ? convertToNumber(data.min, 'min') : undefined,
     max: data.max !== undefined ? convertToNumber(data.max, 'max') : undefined,
     step: data.step !== undefined ? convertToNumber(data.step, 'step') : undefined,
@@ -439,13 +460,22 @@ function parseNumberQuestion(data: any): Question {
 function parseMultipleChoiceQuestion(data: any): Question {
   const validation = parseValidationRules(data);
   const options = convertToArray(data.options, 'options');
-  const stringOptions = options.map((opt: any, index: number) => convertToString(opt, `options[${index}]`));
+  const stringOptions = options.map((opt: any, index: number) => {
+    if (typeof opt === 'string') {
+      return opt;
+    }
+    if (typeof opt === 'object' && opt !== null && opt.value !== undefined) {
+      return convertToString(opt.value, `options[${index}].value`);
+    }
+    return convertToString(opt, `options[${index}]`);
+  });
 
   const question: Question = {
     id: convertToString(data.id, 'id'),
     type: 'multiple-choice',
     label: convertToString(data.label, 'label'),
     required: data.required === true,
+    visible: data.visible !== undefined ? data.visible === true : undefined,
     options: stringOptions,
     defaultValue: data.defaultValue ? convertToString(data.defaultValue, 'defaultValue') : undefined,
     validation: validation.length > 0 ? validation : undefined,

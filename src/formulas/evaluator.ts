@@ -90,6 +90,34 @@ class Parser {
     return ident;
   }
 
+  private parseStringLiteral(): LiteralNode {
+    const quoteChar = this.advance();
+    let str = '';
+    
+    while (this.position < this.expression.length) {
+      const char = this.peek();
+      if (char === quoteChar) {
+        this.advance();
+        break;
+      }
+      if (char === '\\' && this.position + 1 < this.expression.length) {
+        const nextChar = this.expression[this.position + 1];
+        if (nextChar === '\\' || nextChar === quoteChar) {
+          this.advance();
+          str += this.advance();
+          continue;
+        }
+      }
+      str += this.advance();
+    }
+    
+    console.log('[parseStringLiteral] Parsed string:', str);
+    return {
+      type: 'literal',
+      value: str,
+    };
+  }
+
   private parseFieldReference(): FieldReferenceNode {
     const fieldId = this.parseIdentifier();
     return {
@@ -171,6 +199,10 @@ class Parser {
         operator: '!',
         operand,
       } as UnaryOperationNode;
+    }
+
+    if (char === '"' || char === "'") {
+      return this.parseStringLiteral();
     }
 
     if (isDigit(char) || char === '.') {
@@ -378,7 +410,10 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): Express
       if (typeof value === 'number') {
         return value;
       }
-      return parseFloat(value) || 0;
+      if (typeof value === 'string') {
+        return value;
+      }
+      return parseFloat(String(value)) || 0;
     }
 
     case 'fieldReference': {
@@ -430,9 +465,36 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): Express
         case '<=':
           return leftNum <= rightNum;
         case '==':
-          return leftNum === rightNum || left === right;
+          console.log('[evaluator] == comparison - Left:', left, 'Type:', typeof left, 'Right:', right, 'Type:', typeof right);
+          if (typeof left === 'string' && typeof right === 'string') {
+            const result = left === right;
+            console.log('[evaluator] String comparison result:', result);
+            return result;
+          }
+          if (typeof left === 'number' && typeof right === 'number') {
+            const result = left === right;
+            console.log('[evaluator] Number comparison result:', result);
+            return result;
+          }
+          if (typeof left === 'boolean' && typeof right === 'boolean') {
+            const result = left === right;
+            console.log('[evaluator] Boolean comparison result:', result);
+            return result;
+          }
+          const result = left === right;
+          console.log('[evaluator] Mixed type comparison result:', result);
+          return result;
         case '!=':
-          return leftNum !== rightNum && left !== right;
+          if (typeof left === 'string' && typeof right === 'string') {
+            return left !== right;
+          }
+          if (typeof left === 'number' && typeof right === 'number') {
+            return left !== right;
+          }
+          if (typeof left === 'boolean' && typeof right === 'boolean') {
+            return left !== right;
+          }
+          return left !== right;
         case '&&':
           return leftBool && rightBool;
         case '||':

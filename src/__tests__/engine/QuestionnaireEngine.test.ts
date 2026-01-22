@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createQuestionnaireEngine, NotInitializedError, QuestionNotFoundError, InvalidQuestionnaireError } from '../../engine/QuestionnaireEngine';
+import { createQuestionnaireEngine, NotInitializedError, QuestionNotFoundError, InvalidQuestionnaireError } from '../../engine';
 import {
   simpleQuestionnaire,
   questionnaireWithValidation,

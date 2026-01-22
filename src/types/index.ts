@@ -12,6 +12,7 @@ export type {
   TextQuestion,
   NumberQuestion,
   MultipleChoiceQuestion,
+  MultipleChoiceOption,
 } from './questions';
 
 export type {
