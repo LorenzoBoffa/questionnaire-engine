@@ -1,6 +1,7 @@
 import { type QuestionnaireEngine, type EngineState } from 'questionnaire-engine';
 import type { Question } from 'questionnaire-engine';
 import QuestionRenderer from './QuestionRenderer';
+import FormulaResults from './FormulaResults';
 
 interface QuestionnaireFormProps {
   engine: QuestionnaireEngine;
@@ -43,6 +44,11 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
           return null;
         }
 
+        const isFormulasSection = section.id === 'formulas-test-section';
+        const sectionFormulas = isFormulasSection && questionnaire.formulas 
+          ? questionnaire.formulas 
+          : [];
+
         return (
           <div key={section.id} className="section">
             <h2 className="section-title">{section.title}</h2>
@@ -67,6 +73,12 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
                 );
               })}
             </div>
+            {isFormulasSection && sectionFormulas.length > 0 && (
+              <FormulaResults 
+                formulas={sectionFormulas} 
+                results={state.formulaResults || []} 
+              />
+            )}
           </div>
         );
       })}

@@ -258,6 +258,87 @@ select.question-input option {
   background-color: #1565c0;
 }
 
+.formula-results {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.formula-results-title {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.formula-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formula-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #fff;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  transition: box-shadow 0.2s;
+}
+
+.formula-result-item:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.formula-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.formula-id {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.formula-expression {
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #666;
+  background-color: #f5f5f5;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.formula-value-container {
+  display: flex;
+  align-items: center;
+  min-width: 100px;
+  justify-content: flex-end;
+}
+
+.formula-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #4caf50;
+  font-family: 'Courier New', monospace;
+}
+
+.formula-error {
+  font-size: 0.875rem;
+  color: #d32f2f;
+  font-weight: 500;
+  padding: 0.5rem;
+  background-color: #ffebee;
+  border-radius: 4px;
+}
+
 @media (max-width: 768px) {
   .app-header {
     padding: 1.5rem;
@@ -273,5 +354,16 @@ select.question-input option {
 
   .section {
     padding: 1.5rem;
+  }
+
+  .formula-result-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .formula-value-container {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
