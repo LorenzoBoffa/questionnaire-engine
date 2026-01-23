@@ -17,7 +17,7 @@ export function createMultipleChoiceQuestion(data: Question): BaseQuestion {
     type: 'multiple-choice',
     label: choiceData.label,
     required: choiceData.required ?? false,
-    visible: choiceData.visible ?? true,
+    visible: choiceData.visible !== undefined ? choiceData.visible : true,
     validate: (value: AnswerValue) => validateMultipleChoiceQuestion(value, choiceData),
     getDefaultValue: () => getMultipleChoiceQuestionDefaultValue(choiceData),
     serialize: () => serializeMultipleChoiceQuestion(question, choiceData),

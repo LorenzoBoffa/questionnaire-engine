@@ -12,7 +12,7 @@ export function createTextQuestion(data: Question): BaseQuestion {
     type: 'text',
     label: textData.label,
     required: textData.required ?? false,
-    visible: textData.visible ?? true,
+    visible: textData.visible !== undefined ? textData.visible : true,
     validate: (value: AnswerValue) => validateTextQuestion(value, textData),
     getDefaultValue: () => getTextQuestionDefaultValue(textData),
     serialize: () => serializeTextQuestion(question, textData),

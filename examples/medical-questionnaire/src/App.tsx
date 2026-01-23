@@ -16,11 +16,6 @@ function App() {
       questionnaireEngine.loadFromJSON(questionnaireData);
       
       const unsubscribe = questionnaireEngine.subscribe((newState) => {
-        console.log('State update received:', {
-          errors: newState.errors,
-          errorCount: newState.errors?.length || 0,
-          answers: newState.answers
-        });
         setState(newState);
       });
       

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createMinMaxValidator, validateMinMax } from '../../validation/minMaxValidator';
+import { createMinMaxValidator, validateMinMax } from '../../validation/functions/minMaxValidator';
 import { createTextQuestion, createNumberQuestion } from '../fixtures/helpers';
 import type { ValidationRule } from '../../types/validation';
 
@@ -182,7 +182,7 @@ describe('MinMaxValidator', () => {
 
     it('should fail validation for empty string with minLength', () => {
       const rule: ValidationRule = { type: 'minLength', value: 5 };
-      const question = createTextQuestion({ id: 'q1' });
+      const question = createTextQuestion({ id: 'q1', required: true });
       const result = validateMinMax('', rule, question);
 
       expect(result.isValid).toBe(false);
@@ -192,7 +192,7 @@ describe('MinMaxValidator', () => {
 
     it('should fail validation for null/undefined with minLength', () => {
       const rule: ValidationRule = { type: 'minLength', value: 5 };
-      const question = createTextQuestion({ id: 'q1' });
+      const question = createTextQuestion({ id: 'q1', required: true });
 
       expect(validateMinMax(null, rule, question).isValid).toBe(false);
       expect(validateMinMax(undefined, rule, question).isValid).toBe(false);

@@ -71,7 +71,6 @@ export function createStateManager(
   }
 
   function setAnswer(questionId: string, value: AnswerValue): void {
-    console.log('[StateManager.setAnswer] Question:', questionId, 'Value:', value, 'Type:', typeof value);
     answerStore.setAnswer(questionId, value);
     updateState(questionId);
   }
@@ -143,15 +142,12 @@ export function createStateManager(
   }
 
   function updateState(changedQuestionId?: string): void {
-    console.log('[StateManager.updateState] Changed question:', changedQuestionId);
     if (questionnaire?.actions) {
-      console.log('[StateManager.updateState] Actions count:', questionnaire.actions.length);
       const actionEngine = createActionEngine(
         formulaEngine,
         questionRegistry,
         defaultActionRegistry,
         (questionId: string, visible: boolean) => {
-          console.log('[StateManager.updateState] Visibility change callback:', questionId, 'visible:', visible);
           const baseQuestion = questionRegistry.get(questionId);
           if (baseQuestion) {
             const updated = setQuestionVisible(baseQuestion, visible);
@@ -160,11 +156,9 @@ export function createStateManager(
         }
       );
       for (const action of questionnaire.actions) {
-        console.log('[StateManager.updateState] Registering action:', action.type, 'Condition:', action.condition, 'Target:', action.target);
         actionEngine.registerAction(action);
       }
       const allAnswers = answerStore.getAllAnswers();
-      console.log('[StateManager.updateState] All answers before executeAll:', JSON.stringify(allAnswers, null, 2));
       actionEngine.executeAll(allAnswers);
     }
 

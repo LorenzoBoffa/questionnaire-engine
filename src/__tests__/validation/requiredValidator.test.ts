@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createRequiredValidator, validateRequired } from '../../validation/requiredValidator';
+import { createRequiredValidator, validateRequired } from '../../validation/functions/requiredValidator';
 import { createTextQuestion } from '../fixtures/helpers';
 import type { ValidationRule } from '../../types/validation';
 

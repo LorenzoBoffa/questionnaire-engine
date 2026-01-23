@@ -1,7 +1,7 @@
-import type { Validator } from './Validator';
-import type { ValidationRule, ValidationResult, ValidationError } from '../types/validation';
-import type { Question } from '../types/questions';
-import type { AnswerValue } from '../types/answers';
+import type { Validator } from '../Validator';
+import type { ValidationRule, ValidationResult, ValidationError } from '../../types/validation';
+import type { Question } from '../../types/questions';
+import type { AnswerValue } from '../../types/answers';
 
 export function createRequiredValidator(): Validator {
   return {

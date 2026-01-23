@@ -1,6 +1,6 @@
 export type { Validator } from './Validator';
-export { createRequiredValidator, validateRequired } from './requiredValidator';
-export { createMinMaxValidator, validateMinMax } from './minMaxValidator';
+export { createRequiredValidator, validateRequired } from './functions/requiredValidator';
+export { createMinMaxValidator, validateMinMax } from './functions/minMaxValidator';
 export {
   registerValidator,
   getValidator,

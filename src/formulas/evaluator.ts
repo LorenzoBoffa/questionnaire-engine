@@ -111,7 +111,6 @@ class Parser {
       str += this.advance();
     }
     
-    console.log('[parseStringLiteral] Parsed string:', str);
     return {
       type: 'literal',
       value: str,
@@ -264,10 +263,10 @@ class Parser {
       const op = this.peek();
 
       if (op === '=' && this.expression[this.position + 1] === '=') {
-        this.advance();
-        this.advance();
         const opPrecedence = precedence['=='];
         if (opPrecedence < minPrecedence) break;
+        this.advance();
+        this.advance();
         const right = this.parseBinaryOperation(this.parsePrimary(), opPrecedence + 1);
         left = {
           type: 'binaryOperation',
@@ -279,10 +278,10 @@ class Parser {
       }
 
       if (op === '!' && this.expression[this.position + 1] === '=') {
-        this.advance();
-        this.advance();
         const opPrecedence = precedence['!='];
         if (opPrecedence < minPrecedence) break;
+        this.advance();
+        this.advance();
         const right = this.parseBinaryOperation(this.parsePrimary(), opPrecedence + 1);
         left = {
           type: 'binaryOperation',
@@ -294,10 +293,10 @@ class Parser {
       }
 
       if (op === '<' && this.expression[this.position + 1] === '=') {
-        this.advance();
-        this.advance();
         const opPrecedence = precedence['<='];
         if (opPrecedence < minPrecedence) break;
+        this.advance();
+        this.advance();
         const right = this.parseBinaryOperation(this.parsePrimary(), opPrecedence + 1);
         left = {
           type: 'binaryOperation',
@@ -309,10 +308,10 @@ class Parser {
       }
 
       if (op === '>' && this.expression[this.position + 1] === '=') {
-        this.advance();
-        this.advance();
         const opPrecedence = precedence['>='];
         if (opPrecedence < minPrecedence) break;
+        this.advance();
+        this.advance();
         const right = this.parseBinaryOperation(this.parsePrimary(), opPrecedence + 1);
         left = {
           type: 'binaryOperation',
@@ -324,11 +323,11 @@ class Parser {
       }
 
       if (op === '&' && this.expression[this.position + 1] === '&') {
+        const opPrecedence = precedence['&&'];
+        if (opPrecedence < minPrecedence) break;
         this.advance();
         this.advance();
         this.skipWhitespace();
-        const opPrecedence = precedence['&&'];
-        if (opPrecedence < minPrecedence) break;
         const right = this.parseBinaryOperation(this.parsePrimary(), opPrecedence + 1);
         left = {
           type: 'binaryOperation',
@@ -340,11 +339,11 @@ class Parser {
       }
 
       if (op === '|' && this.expression[this.position + 1] === '|') {
+        const opPrecedence = precedence['||'];
+        if (opPrecedence < minPrecedence) break;
         this.advance();
         this.advance();
         this.skipWhitespace();
-        const opPrecedence = precedence['||'];
-        if (opPrecedence < minPrecedence) break;
         const right = this.parseBinaryOperation(this.parsePrimary(), opPrecedence + 1);
         left = {
           type: 'binaryOperation',
@@ -419,7 +418,7 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): Express
     case 'fieldReference': {
       const fieldNode = node as FieldReferenceNode;
       const value = resolveFieldReference(fieldNode.fieldId, context);
-      return value !== null ? value : null;
+      return value;
     }
 
     case 'functionCall': {
@@ -439,8 +438,8 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): Express
       const left = evaluateNode(binNode.left, context);
       const right = evaluateNode(binNode.right, context);
 
-      const leftNum = typeof left === 'number' ? left : 0;
-      const rightNum = typeof right === 'number' ? right : 0;
+      const leftNum = typeof left === 'number' ? left : (left === null ? 0 : typeof left === 'boolean' ? (left ? 1 : 0) : 0);
+      const rightNum = typeof right === 'number' ? right : (right === null ? 0 : typeof right === 'boolean' ? (right ? 1 : 0) : 0);
       const leftBool = typeof left === 'boolean' ? left : leftNum !== 0;
       const rightBool = typeof right === 'boolean' ? right : rightNum !== 0;
 
@@ -465,24 +464,19 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): Express
         case '<=':
           return leftNum <= rightNum;
         case '==':
-          console.log('[evaluator] == comparison - Left:', left, 'Type:', typeof left, 'Right:', right, 'Type:', typeof right);
           if (typeof left === 'string' && typeof right === 'string') {
             const result = left === right;
-            console.log('[evaluator] String comparison result:', result);
             return result;
           }
           if (typeof left === 'number' && typeof right === 'number') {
             const result = left === right;
-            console.log('[evaluator] Number comparison result:', result);
             return result;
           }
           if (typeof left === 'boolean' && typeof right === 'boolean') {
             const result = left === right;
-            console.log('[evaluator] Boolean comparison result:', result);
             return result;
           }
           const result = left === right;
-          console.log('[evaluator] Mixed type comparison result:', result);
           return result;
         case '!=':
           if (typeof left === 'string' && typeof right === 'string') {

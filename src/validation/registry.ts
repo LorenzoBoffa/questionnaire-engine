@@ -1,8 +1,8 @@
 import type { Validator } from './Validator';
 import type { ValidationRule, ValidationRuleType, ValidationResult } from '../types/validation';
 import type { AnswerValue } from '../types/answers';
-import { createRequiredValidator } from './requiredValidator';
-import { createMinMaxValidator } from './minMaxValidator';
+import { createRequiredValidator } from './functions/requiredValidator';
+import { createMinMaxValidator } from './functions/minMaxValidator';
 
 const registry = new Map<ValidationRuleType, Validator>();
 

@@ -395,6 +395,8 @@ describe('Questionnaire Actions', () => {
 
     it('should hide question when age is above range', () => {
       engine.loadFromJSON(questionnaireWithComplexConditions);
+      
+      expect(engine.isQuestionVisible('complex-question')).toBe(false);
 
       engine.setAnswer('age-question', 70);
 

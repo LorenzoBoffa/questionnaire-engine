@@ -12,7 +12,7 @@ export function createNumberQuestion(data: Question): BaseQuestion {
     type: 'number',
     label: numberData.label,
     required: numberData.required ?? false,
-    visible: numberData.visible ?? true,
+    visible: numberData.visible !== undefined ? numberData.visible : true,
     validate: (value: AnswerValue) => validateNumberQuestion(value, numberData),
     getDefaultValue: () => getNumberQuestionDefaultValue(numberData),
     serialize: () => serializeNumberQuestion(question, numberData),

@@ -1,7 +1,7 @@
-import type { Validator } from './Validator';
-import type { ValidationRule, ValidationResult, ValidationError } from '../types/validation';
-import type { Question } from '../types/questions';
-import type { AnswerValue } from '../types/answers';
+import type { Validator } from '../Validator';
+import type { ValidationRule, ValidationResult, ValidationError } from '../../types/validation';
+import type { Question } from '../../types/questions';
+import type { AnswerValue } from '../../types/answers';
 
 export function createMinMaxValidator(): Validator {
   return {
@@ -63,6 +63,12 @@ export function validateMinMax(
     if (rule.value === undefined) {
       return { isValid: true, errors: [] };
     }
+    const isEmpty = value === null || value === undefined || value === '';
+    const hasRequiredRule = question?.validation?.some(r => r.type === 'required');
+    const isExplicitlyOptional = question?.required === false && !hasRequiredRule;
+    if (isEmpty && isExplicitlyOptional) {
+      return { isValid: true, errors: [] };
+    }
     const stringValue = value === null || value === undefined ? '' : String(value);
     if (stringValue.length < rule.value) {
       const error = {
@@ -74,6 +80,12 @@ export function validateMinMax(
     }
   } else if (rule.type === 'maxLength') {
     if (rule.value === undefined) {
+      return { isValid: true, errors: [] };
+    }
+    const isEmpty = value === null || value === undefined || value === '';
+    const hasRequiredRule = question?.validation?.some(r => r.type === 'required');
+    const isExplicitlyOptional = question?.required === false && !hasRequiredRule;
+    if (isEmpty && isExplicitlyOptional) {
       return { isValid: true, errors: [] };
     }
     const stringValue = value === null || value === undefined ? '' : String(value);

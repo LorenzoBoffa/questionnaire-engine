@@ -60,6 +60,8 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
   const jsonLoader = createJSONLoader();
   let stateManager: StateManager | null = null;
   let questionnaire: Questionnaire | null = null;
+  let actionEngine: ActionEngine | null = null;
+  let questionRegistry: Map<string, BaseQuestion> | null = null;
   let isInitialized = false;
 
   function ensureInitialized(): void {
@@ -80,7 +82,7 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
 
     questionnaire = newQuestionnaire;
 
-    const questionRegistry = new Map<string, BaseQuestion>();
+    questionRegistry = new Map<string, BaseQuestion>();
     
     for (const section of newQuestionnaire.sections) {
       for (const question of section.questions) {
@@ -93,11 +95,12 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
       }
     }
 
-    const actionEngine = createActionEngine(
+    actionEngine = createActionEngine(
       formulaEngine,
       questionRegistry,
       defaultActionRegistry,
       (questionId: string, visible: boolean) => {
+        if (!questionRegistry) return;
         const baseQuestion = questionRegistry.get(questionId);
         if (baseQuestion) {
           const updated = setQuestionVisible(baseQuestion, visible);

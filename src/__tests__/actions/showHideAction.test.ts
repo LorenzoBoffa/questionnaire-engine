@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { evaluateCondition, createShowActionHandler, createHideActionHandler } from '../../actions/showHideAction';
+import { evaluateCondition, createShowActionHandler, createHideActionHandler } from '../../actions/functions/showHideAction';
 import type { Action, ShowAction, HideAction } from '../../types/actions';
 import type { ActionContext } from '../../actions/types';
 import { createFormulaEngine } from '../../formulas/engine';
