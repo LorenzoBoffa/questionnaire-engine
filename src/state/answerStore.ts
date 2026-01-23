@@ -16,7 +16,13 @@ export function createAnswerStore(): AnswerStore {
 
   function hasAnswer(questionId: string): boolean {
     const value = answers.get(questionId);
-    return value !== null && value !== undefined && value !== '';
+    if (value === null || value === undefined || value === '') {
+      return false;
+    }
+    if (Array.isArray(value) && value.length === 0) {
+      return false;
+    }
+    return true;
   }
 
   function clearAnswer(questionId: string): void {

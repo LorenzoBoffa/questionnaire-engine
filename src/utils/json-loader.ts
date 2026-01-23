@@ -294,10 +294,21 @@ function validateQuestionnaireStructure(data: any): ValidationResult {
       if (!Array.isArray(sections) || sections.length === 0) {
         errors.push(formatValidationError('', 'sections array must be non-empty'));
       } else {
+        const questionIds = new Set<string>();
         sections.forEach((section: any, index: number) => {
           const sectionResult = validateSectionStructure(section, index);
           if (!sectionResult.isValid) {
             errors.push(...sectionResult.errors);
+          } else if (Array.isArray(section.questions)) {
+            section.questions.forEach((question: any, qIndex: number) => {
+              if (question && typeof question === 'object' && question.id) {
+                if (questionIds.has(question.id)) {
+                  errors.push(formatValidationError(`sections[${index}].questions[${qIndex}]`, `Duplicate question ID found: ${question.id}`));
+                } else {
+                  questionIds.add(question.id);
+                }
+              }
+            });
           }
         });
       }

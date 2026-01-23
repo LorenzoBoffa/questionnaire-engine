@@ -60,7 +60,11 @@ export function createStateManager(
       for (const action of questionnaire.actions) {
         actionEngine.registerAction(action);
       }
-      actionEngine.executeAll(answerStore.getAllAnswers());
+      const allAnswers = answerStore.getAllAnswers();
+      const formulaResultsMap = Object.fromEntries(
+        formulaResults.map(r => [r.formulaId, r.value])
+      );
+      actionEngine.executeAll(allAnswers, formulaResultsMap);
     }
 
     const questions = getCurrentQuestions();
@@ -90,7 +94,33 @@ export function createStateManager(
       .map(q => q.serialize());
   }
 
+  function executeActionsIfNeeded(): void {
+    if (questionnaire?.actions) {
+      const actionEngine = createActionEngine(
+        formulaEngine,
+        questionRegistry,
+        defaultActionRegistry,
+        (questionId: string, visible: boolean) => {
+          const baseQuestion = questionRegistry.get(questionId);
+          if (baseQuestion) {
+            const updated = setQuestionVisible(baseQuestion, visible);
+            questionRegistry.set(questionId, updated);
+          }
+        }
+      );
+      for (const action of questionnaire.actions) {
+        actionEngine.registerAction(action);
+      }
+      const allAnswers = answerStore.getAllAnswers();
+      const formulaResultsMap = Object.fromEntries(
+        formulaResults.map(r => [r.formulaId, r.value])
+      );
+      actionEngine.executeAll(allAnswers, formulaResultsMap);
+    }
+  }
+
   function getProgress(): Progress {
+    executeActionsIfNeeded();
     const visibleQuestions = getCurrentQuestions();
     const total = visibleQuestions.length;
     const answered = visibleQuestions.filter(q => 
@@ -142,6 +172,13 @@ export function createStateManager(
   }
 
   function updateState(changedQuestionId?: string): void {
+    if (questionnaire?.formulas) {
+      formulaResults = formulaEngine.evaluateAll(
+        questionnaire.formulas,
+        answerStore.getAllAnswers()
+      );
+    }
+
     if (questionnaire?.actions) {
       const actionEngine = createActionEngine(
         formulaEngine,
@@ -159,14 +196,10 @@ export function createStateManager(
         actionEngine.registerAction(action);
       }
       const allAnswers = answerStore.getAllAnswers();
-      actionEngine.executeAll(allAnswers);
-    }
-
-    if (questionnaire?.formulas) {
-      formulaResults = formulaEngine.evaluateAll(
-        questionnaire.formulas,
-        answerStore.getAllAnswers()
+      const formulaResultsMap = Object.fromEntries(
+        formulaResults.map(r => [r.formulaId, r.value])
       );
+      actionEngine.executeAll(allAnswers, formulaResultsMap);
     }
 
     if (changedQuestionId) {

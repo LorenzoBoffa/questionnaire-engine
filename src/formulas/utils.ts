@@ -12,7 +12,7 @@ export function resolveFieldReference(
   const answer = context.answers[fieldId];
   
   if (answer === undefined || answer === null) {
-    return null;
+    return 0;
   }
 
   if (typeof answer === 'string') {
@@ -20,11 +20,11 @@ export function resolveFieldReference(
   }
 
   if (typeof answer === 'number') {
-    const result = isNaN(answer) ? null : answer;
+    const result = isNaN(answer) ? 0 : answer;
     return result;
   }
 
-  return null;
+  return 0;
 }
 
 export function convertToNumber(value: AnswerValue): number | null {

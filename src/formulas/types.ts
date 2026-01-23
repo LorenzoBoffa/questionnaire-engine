@@ -77,8 +77,8 @@ export interface FunctionRegistry {
 }
 
 export interface FormulaEngine {
-  evaluate(expression: string, answers: AnswerStore): ExpressionValue;
-  evaluateFormula(formula: Formula, answers: AnswerStore): FormulaResult;
+  evaluate(expression: string, answers: AnswerStore, formulas?: Record<string, number>): ExpressionValue;
+  evaluateFormula(formula: Formula, answers: AnswerStore, formulas?: Record<string, number>): FormulaResult;
   evaluateAll(formulas: Formula[], answers: AnswerStore): FormulaResult[];
   validateExpression(expression: string): boolean;
   getReferencedFields(expression: string): string[];

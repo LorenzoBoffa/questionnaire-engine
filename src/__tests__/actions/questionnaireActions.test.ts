@@ -241,6 +241,14 @@ describe('Questionnaire Actions', () => {
 
       expect(engine.isQuestionVisible('license-number')).toBe(false);
     });
+
+    it('should hide question initially when no answer exists and question has visible: false', () => {
+      engine.loadFromJSON(questionnaireWithShowHide);
+
+      expect(engine.isQuestionVisible('license-number')).toBe(false);
+      const questions = engine.getCurrentQuestions();
+      expect(questions.some((q) => q.id === 'license-number')).toBe(false);
+    });
   });
 
   describe('Actions with String Comparisons', () => {

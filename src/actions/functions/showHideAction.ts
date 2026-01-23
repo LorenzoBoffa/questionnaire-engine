@@ -6,7 +6,7 @@ export function evaluateCondition(
   context: ActionContext
 ): boolean {
   try {
-    const result = context.formulaEngine.evaluate(action.condition, context.answers);
+    const result = context.formulaEngine.evaluate(action.condition, context.answers, context.formulas);
     
     if (typeof result === 'boolean') {
       return result;
@@ -52,6 +52,13 @@ export function createShowActionHandler(): ActionExecutor {
   };
 }
 
+function extractFieldReferences(condition: string): string[] {
+  const fieldPattern = /[a-zA-Z_][\w-]*/g;
+  const matches = condition.match(fieldPattern) || [];
+  const keywords = ['true', 'false', 'sum'];
+  return matches.filter(m => !keywords.includes(m));
+}
+
 export function createHideActionHandler(): ActionExecutor {
   function evaluateConditionForHide(action: Action, context: ActionContext): boolean {
     return evaluateCondition(action, context);
@@ -66,6 +73,18 @@ export function createHideActionHandler(): ActionExecutor {
     }
 
     const newVisible = !conditionResult;
+    
+    if (newVisible && question.visible === false) {
+      const referencedFields = extractFieldReferences(action.condition);
+      const hasAnyReferencedAnswer = referencedFields.some(field => 
+        context.answers[field] !== undefined && context.answers[field] !== null && context.answers[field] !== ''
+      );
+      
+      if (referencedFields.length > 0 && !hasAnyReferencedAnswer) {
+        return;
+      }
+    }
+    
     question.visible = newVisible;
 
     if (context.onVisibilityChange) {

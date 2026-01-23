@@ -46,11 +46,11 @@ describe('Expression Evaluator', () => {
       expect(result).toBe(42);
     });
 
-    it('should return null for non-existent field', () => {
+    it('should return 0 for non-existent field', () => {
       const evaluator = createExpressionEvaluator();
       const result = evaluator.evaluate('nonexistent', createContext());
 
-      expect(result).toBe(null);
+      expect(result).toBe(0);
     });
 
     it('should handle field references with underscores and hyphens', () => {

@@ -11,6 +11,7 @@ export interface ActionContext {
   formulaEngine: FormulaEngine;
   questionRegistry: Map<string, BaseQuestion>;
   onVisibilityChange?: (questionId: string, visible: boolean) => void;
+  formulas?: Record<string, number>;
 }
 
 export interface ActionExecutor {
@@ -26,8 +27,8 @@ export interface ActionHandlerRegistry {
 }
 
 export interface ActionEngine {
-  executeAll(answers: AnswerStore): void;
-  executeForQuestion(questionId: string, answers: AnswerStore): void;
+  executeAll(answers: AnswerStore, formulas?: Record<string, number>): void;
+  executeForQuestion(questionId: string, answers: AnswerStore, formulas?: Record<string, number>): void;
   getActionsForQuestion(questionId: string): Action[];
   registerAction(action: Action): void;
   clearActions(): void;

@@ -30,6 +30,8 @@ function validateQuestionnaireStructure(questionnaire: Questionnaire): void {
     throw new InvalidQuestionnaireError('Questionnaire must have at least one section');
   }
 
+  const questionIds = new Set<string>();
+
   for (const section of questionnaire.sections) {
     if (!section.id) {
       throw new InvalidQuestionnaireError('Section must have an id');
@@ -40,11 +42,18 @@ function validateQuestionnaireStructure(questionnaire: Questionnaire): void {
     if (!section.questions || !Array.isArray(section.questions)) {
       throw new InvalidQuestionnaireError('Section must have a questions array');
     }
+    if (section.questions.length === 0) {
+      throw new InvalidQuestionnaireError('Section must have at least one question');
+    }
 
     for (const question of section.questions) {
       if (!question.id) {
         throw new InvalidQuestionnaireError('Question must have an id');
       }
+      if (questionIds.has(question.id)) {
+        throw new InvalidQuestionnaireError(`Duplicate question ID found: ${question.id}`);
+      }
+      questionIds.add(question.id);
       if (!question.type) {
         throw new InvalidQuestionnaireError('Question must have a type');
       }
@@ -283,7 +292,13 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
   function hasAnswer(questionId: string): boolean {
     ensureInitialized();
     const value = stateManager!.getAnswer(questionId);
-    return value !== null && value !== undefined && value !== '';
+    if (value === null || value === undefined || value === '') {
+      return false;
+    }
+    if (Array.isArray(value) && value.length === 0) {
+      return false;
+    }
+    return true;
   }
 
   return {

@@ -24,7 +24,7 @@ export function createActionEngine(
     return actions.filter((action) => action.target === questionId);
   }
 
-  function executeForQuestion(questionId: string, answers: AnswerStore): void {
+  function executeForQuestion(questionId: string, answers: AnswerStore, formulas?: Record<string, number>): void {
     const relevantActions = getActionsForQuestion(questionId);
     if (relevantActions.length === 0) {
       return;
@@ -35,6 +35,7 @@ export function createActionEngine(
       formulaEngine,
       questionRegistry,
       onVisibilityChange,
+      formulas,
     };
 
     const hideActions = relevantActions.filter((a) => a.type === 'hide');
@@ -43,11 +44,8 @@ export function createActionEngine(
     for (const action of hideActions) {
       const handler = actionRegistry.getHandler(action.type);
       if (handler) {
-        const conditionResult = handler.evaluateCondition(action, context);
-        if (conditionResult) {
-          handler.execute(action, context);
-          return;
-        }
+        handler.execute(action, context);
+        return;
       }
     }
 
@@ -59,7 +57,7 @@ export function createActionEngine(
     }
   }
 
-  function executeAll(answers: AnswerStore): void {
+  function executeAll(answers: AnswerStore, formulas?: Record<string, number>): void {
     const affectedQuestions = new Set<string>();
     
     for (const action of actions) {
@@ -67,7 +65,7 @@ export function createActionEngine(
     }
 
     for (const questionId of affectedQuestions) {
-      executeForQuestion(questionId, answers);
+      executeForQuestion(questionId, answers, formulas);
     }
   }
 

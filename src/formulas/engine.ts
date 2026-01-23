@@ -96,19 +96,29 @@ function topologicalSort(formulas: Formula[], graph: Map<string, string[]>): For
 export function createFormulaEngine(): FormulaEngine {
   const functionRegistry = createFunctionRegistry();
 
-  function evaluate(expression: string, answers: AnswerStore): ExpressionValue {
+  function evaluate(expression: string, answers: AnswerStore, formulas?: Record<string, number>): ExpressionValue {
+    if (!expression || expression.trim() === '') {
+      throw new Error('Expression cannot be empty');
+    }
+
     const context: EvaluationContext = {
       answers,
+      formulas,
       functions: functionRegistry,
     };
 
     return evaluateExpression(expression, context);
   }
 
-  function evaluateFormula(formula: Formula, answers: AnswerStore): FormulaResult {
+  function evaluateFormula(formula: Formula, answers: AnswerStore, formulas?: Record<string, number>): FormulaResult {
+    if (!formula.expression || formula.expression.trim() === '') {
+      throw new Error('Formula expression cannot be empty');
+    }
+
     try {
       const context: EvaluationContext = {
         answers,
+        formulas,
         functions: functionRegistry,
       };
 
