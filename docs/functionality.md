@@ -7,6 +7,8 @@
 - **number**: Numeric input
 - **multiple-choice**: Single selection from a list of options
 
+All questions support an optional **metadata** object (`Record<string, unknown>`) for passing additional info (e.g. icons, help text) to the UI layer.
+
 ### Validation Rules
 - **required**: Ensures field has a value
 - **min**: Minimum numeric value

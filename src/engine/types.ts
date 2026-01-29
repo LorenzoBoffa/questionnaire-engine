@@ -1,4 +1,4 @@
-import type { Questionnaire, Section, FormulaResult } from '../types/questionnaire';
+import type { Questionnaire, Section } from '../types/questionnaire';
 import type { Question } from '../types/questions';
 import type { AnswerValue, AnswerStore } from '../types/answers';
 import type { ValidationResult, ValidationError } from '../types/validation';

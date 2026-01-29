@@ -37,6 +37,7 @@ All questions share these properties:
 - `required` (boolean, optional): Whether the question is required
 - `visible` (boolean, optional): Initial visibility state (default: `true`)
 - `validation` (array, optional): Array of validation rules
+- `metadata` (object, optional): Arbitrary key-value data for the UI (e.g. icons, help text)
 
 ### Text Question
 
