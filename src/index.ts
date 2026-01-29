@@ -85,6 +85,9 @@ export {
 } from './engine';
 
 export type { QuestionnaireEngine, EngineCallback, EngineState, Progress } from './engine';
+export type { RawAnswer, ScoreFormula, ScoreResult, ScoringConfig, SubmitResult } from './types/scoring';
+export { createScoringEngine } from './scoring';
+export type { ScoringEngine, ScoringEngineDependencies } from './scoring';
 
 export {
   createJSONLoader,
@@ -103,3 +106,11 @@ export type {
   SectionParser,
   ValidationResult as LoaderValidationResult,
 } from './utils/json-loader';
+
+export {
+  createScoringConfigLoader,
+} from './utils/scoring-loader';
+
+export type {
+  ScoringConfigLoader,
+} from './utils/scoring-loader';

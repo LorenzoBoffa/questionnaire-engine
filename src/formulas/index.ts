@@ -1,4 +1,5 @@
 export { createFormulaEngine } from './engine';
+export { extractFieldReferences, buildDependencyGraph, topologicalSort } from './utils';
 export type { FormulaEngine } from './types';
 
 export { createExpressionEvaluator } from './evaluator';

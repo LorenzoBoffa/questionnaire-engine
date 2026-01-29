@@ -3,6 +3,7 @@ import type { Question } from '../types/questions';
 import type { AnswerValue, AnswerStore } from '../types/answers';
 import type { ValidationResult, ValidationError } from '../types/validation';
 import type { Progress, EngineState } from '../state/types';
+import type { SubmitResult, ScoringConfig, ScoreResult } from '../types/scoring';
 
 export interface QuestionnaireEngine {
   load(questionnaire: Questionnaire): void;
@@ -23,6 +24,8 @@ export interface QuestionnaireEngine {
   getVisibleQuestionsForSection(sectionId: string): Question[];
   isQuestionVisible(questionId: string): boolean;
   hasAnswer(questionId: string): boolean;
+  submit(): SubmitResult;
+  calculateScore(scoringConfig: ScoringConfig, answers?: AnswerStore): ScoreResult[];
 }
 
 export type EngineCallback = (state: EngineState) => void;

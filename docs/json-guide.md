@@ -234,6 +234,156 @@ Conditions use the same expression syntax as formulas:
 { "type": "show", "condition": "age >= 18 && has-license == 'Yes'", "target": "license-number" }
 ```
 
+## Scoring Configuration
+
+Scoring configuration is defined in a separate JSON file (`scoring-config.json`). This allows you to define scoring formulas that calculate scores based on question answers.
+
+### Structure
+
+```json
+{
+  "formulas": [
+    {
+      "id": "string",
+      "parameterName": "string",
+      "expression": "string",
+      "resultType": "number" | "percentage" | "category" (optional)
+    }
+  ]
+}
+```
+
+### Required Fields
+
+- `formulas` (array, required): Array of scoring formulas
+  - `id` (string, required): Unique identifier for the formula
+  - `parameterName` (string, required): Name of the parameter that will hold the score result
+  - `expression` (string, required): Expression to calculate the score (uses same syntax as formulas)
+
+### Optional Fields
+
+- `resultType` (string, optional): Type of result (`number`, `percentage`, or `category`). Defaults to `number`.
+
+### Expression Syntax
+
+Scoring formulas use the same expression syntax as regular formulas. You can:
+
+- Reference question IDs: `q1`, `age`, `question-id`
+- Reference other scoring formulas by their `id`: `baseScore`, `totalScore`
+- Use arithmetic operations: `+`, `-`, `*`, `/`
+- Use built-in functions: `sum(...)`
+- Use parentheses for grouping: `(q1 + q2) * 2`
+
+### Examples
+
+#### Basic Scoring Formula
+
+```json
+{
+  "formulas": [
+    {
+      "id": "total-score",
+      "parameterName": "totalScore",
+      "expression": "sum(q1, q2, q3)"
+    }
+  ]
+}
+```
+
+#### Multiple Scoring Formulas
+
+```json
+{
+  "formulas": [
+    {
+      "id": "basic-score",
+      "parameterName": "basicScore",
+      "expression": "sum(q1, q2, q3)"
+    },
+    {
+      "id": "extended-score",
+      "parameterName": "extendedScore",
+      "expression": "sum(q4, q5)"
+    },
+    {
+      "id": "total-score",
+      "parameterName": "totalScore",
+      "expression": "sum(basic-score, extended-score)"
+    }
+  ]
+}
+```
+
+#### Scoring with Result Types
+
+```json
+{
+  "formulas": [
+    {
+      "id": "numeric-score",
+      "parameterName": "numericScore",
+      "expression": "sum(q1, q2)",
+      "resultType": "number"
+    },
+    {
+      "id": "percentage-score",
+      "parameterName": "percentageScore",
+      "expression": "(sum(q1, q2) / 100) * 100",
+      "resultType": "percentage"
+    },
+    {
+      "id": "category-score",
+      "parameterName": "categoryScore",
+      "expression": "sum(q1, q2)",
+      "resultType": "category"
+    }
+  ]
+}
+```
+
+#### Complex Scoring with Dependencies
+
+```json
+{
+  "formulas": [
+    {
+      "id": "base-score",
+      "parameterName": "baseScore",
+      "expression": "sum(q1, q2)"
+    },
+    {
+      "id": "multiplied-score",
+      "parameterName": "multipliedScore",
+      "expression": "base-score * 2"
+    },
+    {
+      "id": "final-score",
+      "parameterName": "finalScore",
+      "expression": "sum(multiplied-score, q3)"
+    }
+  ]
+}
+```
+
+### Formula Dependencies
+
+Scoring formulas can reference other scoring formulas by their `id`. The engine automatically resolves dependencies and evaluates formulas in the correct order using topological sorting.
+
+### Integration with Questionnaire
+
+1. Load your questionnaire JSON using `loadFromJSON()`
+2. Load your scoring configuration JSON using `createScoringConfigLoader().loadFromString()` or `loadFromObject()`
+3. After submitting the questionnaire, use `engine.calculateScore(scoringConfig)` to calculate scores
+
+### Error Handling
+
+- Missing `formulas` field: Validation error
+- Missing required fields (`id`, `parameterName`, `expression`): Validation error
+- Invalid `resultType`: Validation error (must be `number`, `percentage`, or `category`)
+- Invalid expression syntax: Error returned in score result
+- Missing referenced questions: Returns 0 for missing values
+- Circular dependencies: Error returned in score result
+
 ## Complete Example
 
 ```json

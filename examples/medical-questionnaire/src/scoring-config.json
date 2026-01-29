@@ -1,0 +1,19 @@
+{
+  "formulas": [
+    {
+      "id": "total-formulas",
+      "parameterName": "totalScore",
+      "expression": "sum(formula-num1, formula-num2, formula-num3, formula-num4, formula-num5)"
+    },
+    {
+      "id": "sum-basic-score",
+      "parameterName": "sumBasicScore",
+      "expression": "sum(formula-num1, formula-num2, formula-num3)"
+    },
+    {
+      "id": "sum-extended-score",
+      "parameterName": "sumExtendedScore",
+      "expression": "sum(formula-num4, formula-num5)"
+    }
+  ]
+}

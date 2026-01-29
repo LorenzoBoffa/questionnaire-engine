@@ -7,6 +7,7 @@ import type { Progress, EngineState, StateManager } from '../state/types';
 import type { FormulaEngine } from '../formulas/types';
 import type { ActionEngine } from '../actions/types';
 import type { BaseQuestion } from '../questions/base';
+import type { RawAnswer, SubmitResult, ScoringConfig, ScoreResult } from '../types/scoring';
 
 import { NotInitializedError, QuestionNotFoundError, InvalidQuestionnaireError } from './types';
 import { createFormulaEngine } from '../formulas';
@@ -15,6 +16,7 @@ import { createActionEngine, defaultActionRegistry } from '../actions';
 import { createStateManager } from '../state';
 import { createQuestion, setQuestionVisible, isQuestionVisible } from '../questions';
 import { createJSONLoader } from '../utils/json-loader';
+import { createScoringEngine } from '../scoring';
 
 function validateQuestionnaireStructure(questionnaire: Questionnaire): void {
   if (!questionnaire.id) {
@@ -301,6 +303,60 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
     return true;
   }
 
+  function submit(): SubmitResult {
+    ensureInitialized();
+    
+    const validationResult = validate();
+    const allAnswers = getAllAnswers();
+    
+    const rawAnswers: RawAnswer[] = [];
+    const timestamp = Date.now();
+    
+    if (!questionnaire) {
+      throw new NotInitializedError();
+    }
+    
+    for (const section of questionnaire.sections) {
+      for (const question of section.questions) {
+        const value = allAnswers[question.id];
+        if (value !== undefined && value !== null && value !== '') {
+          rawAnswers.push({
+            questionId: question.id,
+            value,
+            timestamp,
+          });
+        }
+      }
+    }
+    
+    if (validationResult.isValid) {
+      return {
+        answers: rawAnswers,
+        isValid: true,
+      };
+    } else {
+      return {
+        answers: rawAnswers,
+        isValid: false,
+        errors: validationResult.errors,
+      };
+    }
+  }
+
+  function calculateScore(
+    scoringConfig: ScoringConfig,
+    answers?: AnswerStore
+  ): ScoreResult[] {
+    ensureInitialized();
+    
+    const answersToUse = answers || getAllAnswers();
+    const scoringEngine = createScoringEngine({
+      formulaEngine,
+    });
+    
+    return scoringEngine.calculateScores(scoringConfig, answersToUse);
+  }
+
   return {
     load,
     loadFromJSON,
@@ -320,5 +376,7 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
     getVisibleQuestionsForSection,
     isQuestionVisible,
     hasAnswer,
+    submit,
+    calculateScore,
   };
 }

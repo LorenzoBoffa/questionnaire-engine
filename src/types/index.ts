@@ -42,3 +42,11 @@ export type {
   Progress,
   EngineState,
 } from './state';
+
+export type {
+  RawAnswer,
+  ScoreFormula,
+  ScoreResult,
+  ScoringConfig,
+  SubmitResult,
+} from './scoring';

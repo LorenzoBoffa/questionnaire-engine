@@ -3,27 +3,7 @@ import type { Formula, FormulaResult } from '../types/questionnaire';
 import type { AnswerStore } from '../types/answers';
 import { createExpressionEvaluator } from './evaluator';
 import { createFunctionRegistry } from './registry';
-
-function extractFieldReferences(expression: string): string[] {
-  const fieldRefs = new Set<string>();
-  const fieldRefRegex = /\b([a-zA-Z_][a-zA-Z0-9_-]*)\b/g;
-  const functionCallRegex = /\b([a-zA-Z_][a-zA-Z0-9_-]*)\s*\(/g;
-
-  const functionNames = new Set<string>();
-  let match;
-  while ((match = functionCallRegex.exec(expression)) !== null) {
-    functionNames.add(match[1]);
-  }
-
-  while ((match = fieldRefRegex.exec(expression)) !== null) {
-    const identifier = match[1];
-    if (!functionNames.has(identifier)) {
-      fieldRefs.add(identifier);
-    }
-  }
-
-  return Array.from(fieldRefs);
-}
+import { buildDependencyGraph, topologicalSort, extractFieldReferences } from './utils';
 
 function evaluateExpression(
   expression: string,
@@ -37,60 +17,6 @@ function validateFormulaExpression(expression: string): boolean {
   const evaluator = createExpressionEvaluator();
   const result = evaluator.validate(expression);
   return result.isValid;
-}
-
-function buildDependencyGraph(formulas: Formula[]): Map<string, string[]> {
-  const graph = new Map<string, string[]>();
-
-  for (const formula of formulas) {
-    const deps = extractFieldReferences(formula.expression);
-    graph.set(formula.id, deps);
-  }
-
-  return graph;
-}
-
-function topologicalSort(formulas: Formula[], graph: Map<string, string[]>): Formula[] {
-  const formulaMap = new Map<string, Formula>();
-  for (const formula of formulas) {
-    formulaMap.set(formula.id, formula);
-  }
-
-  const visited = new Set<string>();
-  const visiting = new Set<string>();
-  const sorted: Formula[] = [];
-
-  function visit(formulaId: string): void {
-    if (visiting.has(formulaId)) {
-      return;
-    }
-    if (visited.has(formulaId)) {
-      return;
-    }
-
-    visiting.add(formulaId);
-    const deps = graph.get(formulaId) || [];
-    for (const dep of deps) {
-      if (formulaMap.has(dep)) {
-        visit(dep);
-      }
-    }
-    visiting.delete(formulaId);
-    visited.add(formulaId);
-
-    const formula = formulaMap.get(formulaId);
-    if (formula) {
-      sorted.push(formula);
-    }
-  }
-
-  for (const formula of formulas) {
-    if (!visited.has(formula.id)) {
-      visit(formula.id);
-    }
-  }
-
-  return sorted;
 }
 
 export function createFormulaEngine(): FormulaEngine {
