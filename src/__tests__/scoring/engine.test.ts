@@ -455,6 +455,246 @@ describe('ScoringEngine', () => {
         expect(result.value).toBe(2);
       });
     });
+
+    it('should evaluate single question reference without sum', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'single',
+            parameterName: 'singleScore',
+            expression: 'q1',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 42,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(42);
+    });
+
+    it('should handle arithmetic subtraction in expression', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'diff',
+            parameterName: 'diffScore',
+            expression: 'q1 - q2',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 50,
+        q2: 20,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(30);
+    });
+
+    it('should handle arithmetic multiplication in expression', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'product',
+            parameterName: 'productScore',
+            expression: 'q1 * q2',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 6,
+        q2: 7,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(42);
+    });
+
+    it('should handle arithmetic division with non-zero divisor', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'ratio',
+            parameterName: 'ratioScore',
+            expression: 'q1 / q2',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 100,
+        q2: 4,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(25);
+    });
+
+    it('should handle zero values in answers', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2, q3)',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 0,
+        q2: 0,
+        q3: 0,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(0);
+    });
+
+    it('should handle negative numbers in answers', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2)',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: -10,
+        q2: 20,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(10);
+    });
+
+    it('should handle decimal values in answers', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2)',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 1.5,
+        q2: 2.5,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(4);
+    });
+
+    it('should handle mixed arithmetic in single expression', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'mixed',
+            parameterName: 'mixedScore',
+            expression: 'q1 + q2 * 2 - q3',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 10,
+        q2: 5,
+        q3: 4,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(10 + 10 - 4);
+    });
+
+    it('should preserve result order consistent with formula array when no dependencies', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'first',
+            parameterName: 'firstScore',
+            expression: 'q1',
+          },
+          {
+            id: 'second',
+            parameterName: 'secondScore',
+            expression: 'q2',
+          },
+          {
+            id: 'third',
+            parameterName: 'thirdScore',
+            expression: 'q3',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 1,
+        q2: 2,
+        q3: 3,
+      };
+
+      const results = scoringEngine.calculateScores(config, answers);
+
+      expect(results).toHaveLength(3);
+      expect(results[0].formulaId).toBe('first');
+      expect(results[1].formulaId).toBe('second');
+      expect(results[2].formulaId).toBe('third');
+      expect(results[0].value).toBe(1);
+      expect(results[1].value).toBe(2);
+      expect(results[2].value).toBe(3);
+    });
+
+    it('should not mutate input config or answers', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2)',
+          },
+        ],
+      };
+
+      const answers: AnswerStore = {
+        q1: 10,
+        q2: 20,
+      };
+
+      const configSnapshot = JSON.stringify(config);
+      const answersSnapshot = JSON.stringify(answers);
+
+      scoringEngine.calculateScores(config, answers);
+
+      expect(JSON.stringify(config)).toBe(configSnapshot);
+      expect(JSON.stringify(answers)).toBe(answersSnapshot);
+    });
   });
 
   describe('validateScoringConfig', () => {
@@ -541,6 +781,53 @@ describe('ScoringEngine', () => {
 
       const result = scoringEngine.validateScoringConfig(config);
       expect(result).toBe(false);
+    });
+
+    it('should return false for formula with empty string id', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: '',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2)',
+          },
+        ],
+      };
+
+      expect(scoringEngine.validateScoringConfig(config)).toBe(false);
+    });
+
+    it('should return false for formula with empty string parameterName', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: '',
+            expression: 'sum(q1, q2)',
+          },
+        ],
+      };
+
+      expect(scoringEngine.validateScoringConfig(config)).toBe(false);
+    });
+
+    it('should return true for config with single formula and optional resultType', () => {
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'q1 + q2',
+            resultType: 'number',
+          },
+        ],
+      };
+
+      expect(scoringEngine.validateScoringConfig(config)).toBe(true);
+    });
+
+    it('should return false for undefined config', () => {
+      expect(scoringEngine.validateScoringConfig(undefined as any)).toBe(false);
     });
   });
 });

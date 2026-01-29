@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createScoringConfigLoader, InvalidJSONError, InvalidStructureError, MissingFieldError, InvalidTypeError } from '../../utils/scoring-loader';
-import type { ScoringConfig } from '../../types/scoring';
+import { createScoringConfigLoader } from '../../utils/scoring-loader';
+import { InvalidJSONError, InvalidStructureError } from '../../utils/json-loader';
 
 describe('ScoringConfigLoader', () => {
   const loader = createScoringConfigLoader();
@@ -166,7 +166,7 @@ describe('ScoringConfigLoader', () => {
       expect(() => loader.loadFromObject(obj)).toThrow(/Missing required field.*expression/);
     });
 
-    it('should throw InvalidTypeError for non-string id', () => {
+    it('should throw InvalidStructureError for non-string id', () => {
       const obj = {
         formulas: [
           {
@@ -177,10 +177,11 @@ describe('ScoringConfigLoader', () => {
         ],
       };
 
-      expect(() => loader.loadFromObject(obj)).toThrow(InvalidTypeError);
+      expect(() => loader.loadFromObject(obj)).toThrow(InvalidStructureError);
+      expect(() => loader.loadFromObject(obj)).toThrow(/expected string, got number/);
     });
 
-    it('should throw InvalidTypeError for non-string parameterName', () => {
+    it('should throw InvalidStructureError for non-string parameterName', () => {
       const obj = {
         formulas: [
           {
@@ -191,10 +192,11 @@ describe('ScoringConfigLoader', () => {
         ],
       };
 
-      expect(() => loader.loadFromObject(obj)).toThrow(InvalidTypeError);
+      expect(() => loader.loadFromObject(obj)).toThrow(InvalidStructureError);
+      expect(() => loader.loadFromObject(obj)).toThrow(/expected string, got number/);
     });
 
-    it('should throw InvalidTypeError for non-string expression', () => {
+    it('should throw InvalidStructureError for non-string expression', () => {
       const obj = {
         formulas: [
           {
@@ -205,7 +207,8 @@ describe('ScoringConfigLoader', () => {
         ],
       };
 
-      expect(() => loader.loadFromObject(obj)).toThrow(InvalidTypeError);
+      expect(() => loader.loadFromObject(obj)).toThrow(InvalidStructureError);
+      expect(() => loader.loadFromObject(obj)).toThrow(/expected string, got number/);
     });
 
     it('should throw InvalidStructureError for invalid resultType', () => {

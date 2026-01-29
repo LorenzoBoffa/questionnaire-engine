@@ -239,5 +239,158 @@ describe('Scoring Integration Tests', () => {
         expect(result.value).toBe(30);
       });
     });
+
+    it('should calculate scores from raw answers map after invalid submit', () => {
+      const questionnaireJson = JSON.stringify(questionnaireWithFormulas);
+      const questionnaire = jsonLoader.loadFromString(questionnaireJson);
+
+      engine.load(questionnaire);
+      engine.setAnswer('q1', 10);
+      engine.setAnswer('q2', 20);
+
+      const submitResult = engine.submit();
+
+      const answersMap: Record<string, string | number> = {};
+      submitResult.answers.forEach(answer => {
+        answersMap[answer.questionId] = answer.value as string | number;
+      });
+
+      const scoringConfig = scoringLoader.loadFromObject({
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2)',
+          },
+        ],
+      });
+
+      const scoreResults = engine.calculateScore(scoringConfig, answersMap);
+
+      expect(scoreResults).toHaveLength(1);
+      expect(scoreResults[0].value).toBe(30);
+    });
+
+    it('should calculate scores with empty answers map when no answers submitted', () => {
+      const questionnaireJson = JSON.stringify(questionnaireWithFormulas);
+      const questionnaire = jsonLoader.loadFromString(questionnaireJson);
+
+      engine.load(questionnaire);
+
+      const scoringConfig = scoringLoader.loadFromObject({
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2, q3)',
+          },
+        ],
+      });
+
+      const results = engine.calculateScore(scoringConfig, {});
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(0);
+    });
+
+    it('should produce correct scores for multiple categories with different expressions', () => {
+      const questionnaireJson = JSON.stringify(questionnaireWithFormulas);
+      const questionnaire = jsonLoader.loadFromString(questionnaireJson);
+
+      engine.load(questionnaire);
+      engine.setAnswer('q1', 2);
+      engine.setAnswer('q2', 3);
+      engine.setAnswer('q3', 5);
+
+      const scoringConfig = scoringLoader.loadFromObject({
+        formulas: [
+          {
+            id: 'catA',
+            parameterName: 'categoryA',
+            expression: 'q1 * 10',
+          },
+          {
+            id: 'catB',
+            parameterName: 'categoryB',
+            expression: 'q2 * 10',
+          },
+          {
+            id: 'catC',
+            parameterName: 'categoryC',
+            expression: 'q3 * 10',
+          },
+          {
+            id: 'grandTotal',
+            parameterName: 'grandTotal',
+            expression: 'sum(catA, catB, catC)',
+          },
+        ],
+      });
+
+      const results = engine.calculateScore(scoringConfig);
+
+      expect(results).toHaveLength(4);
+      expect(results.find(r => r.parameterName === 'categoryA')?.value).toBe(20);
+      expect(results.find(r => r.parameterName === 'categoryB')?.value).toBe(30);
+      expect(results.find(r => r.parameterName === 'categoryC')?.value).toBe(50);
+      expect(results.find(r => r.parameterName === 'grandTotal')?.value).toBe(100);
+    });
+
+    it('should load scoring config from string and calculate with partial answers', () => {
+      const questionnaireJson = JSON.stringify(questionnaireWithFormulas);
+      const questionnaire = jsonLoader.loadFromString(questionnaireJson);
+
+      engine.load(questionnaire);
+      engine.setAnswer('q1', 5);
+
+      const scoringConfigJson = JSON.stringify({
+        formulas: [
+          {
+            id: 'partial',
+            parameterName: 'partialScore',
+            expression: 'q1 + q2',
+          },
+        ],
+      });
+
+      const scoringConfig = scoringLoader.loadFromString(scoringConfigJson);
+      const results = engine.calculateScore(scoringConfig);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].parameterName).toBe('partialScore');
+    });
+
+    it('should preserve formulaId and parameterName in each score result', () => {
+      const questionnaireJson = JSON.stringify(questionnaireWithFormulas);
+      const questionnaire = jsonLoader.loadFromString(questionnaireJson);
+
+      engine.load(questionnaire);
+      engine.setAnswer('q1', 1);
+      engine.setAnswer('q2', 2);
+      engine.setAnswer('q3', 3);
+
+      const scoringConfig = scoringLoader.loadFromObject({
+        formulas: [
+          {
+            id: 'formula-alpha',
+            parameterName: 'outputAlpha',
+            expression: 'q1',
+          },
+          {
+            id: 'formula-beta',
+            parameterName: 'outputBeta',
+            expression: 'sum(q2, q3)',
+          },
+        ],
+      });
+
+      const results = engine.calculateScore(scoringConfig);
+
+      expect(results).toHaveLength(2);
+      expect(results[0].formulaId).toBe('formula-alpha');
+      expect(results[0].parameterName).toBe('outputAlpha');
+      expect(results[1].formulaId).toBe('formula-beta');
+      expect(results[1].parameterName).toBe('outputBeta');
+    });
   });
 });

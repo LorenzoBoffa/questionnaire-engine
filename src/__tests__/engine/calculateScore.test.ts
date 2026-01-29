@@ -293,5 +293,148 @@ describe('QuestionnaireEngine - calculateScore', () => {
       expect(results).toHaveLength(1);
       expect(results[0].value).toBe(0);
     });
+
+    it('should use provided answers over engine state when both are set', () => {
+      engine.load(questionnaireWithFormulas);
+      engine.setAnswer('q1', 100);
+      engine.setAnswer('q2', 200);
+      engine.setAnswer('q3', 300);
+
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2, q3)',
+          },
+        ],
+      };
+
+      const providedAnswers = {
+        q1: 1,
+        q2: 2,
+        q3: 3,
+      };
+
+      const results = engine.calculateScore(config, providedAnswers);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(6);
+    });
+
+    it('should return empty array when config has empty formulas and no answers provided', () => {
+      engine.load(questionnaireWithFormulas);
+
+      const config: ScoringConfig = {
+        formulas: [],
+      };
+
+      const results = engine.calculateScore(config);
+
+      expect(results).toHaveLength(0);
+    });
+
+    it('should return score result with formulaId parameterName and value', () => {
+      engine.load(questionnaireWithFormulas);
+      engine.setAnswer('q1', 7);
+      engine.setAnswer('q2', 8);
+
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'my-formula',
+            parameterName: 'myParam',
+            expression: 'sum(q1, q2)',
+          },
+        ],
+      };
+
+      const results = engine.calculateScore(config);
+
+      expect(results).toHaveLength(1);
+      expect(results[0]).toHaveProperty('formulaId', 'my-formula');
+      expect(results[0]).toHaveProperty('parameterName', 'myParam');
+      expect(results[0]).toHaveProperty('value', 15);
+      expect(typeof results[0].value).toBe('number');
+    });
+
+    it('should calculate single-question score when expression references one question', () => {
+      engine.load(questionnaireWithFormulas);
+      engine.setAnswer('q1', 99);
+
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'single',
+            parameterName: 'singleScore',
+            expression: 'q1',
+          },
+        ],
+      };
+
+      const results = engine.calculateScore(config);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(99);
+    });
+
+    it('should calculate score from provided answers only when engine has no answers', () => {
+      engine.load(questionnaireWithFormulas);
+
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2, q3)',
+          },
+        ],
+      };
+
+      const results = engine.calculateScore(config, { q1: 1, q2: 2, q3: 3 });
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(6);
+    });
+
+    it('should handle arithmetic expression in scoring formula', () => {
+      engine.load(questionnaireWithFormulas);
+      engine.setAnswer('q1', 10);
+      engine.setAnswer('q2', 5);
+
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'diff',
+            parameterName: 'diffScore',
+            expression: 'q1 - q2',
+          },
+        ],
+      };
+
+      const results = engine.calculateScore(config);
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(5);
+    });
+
+    it('should handle provided empty answers object', () => {
+      engine.load(questionnaireWithFormulas);
+
+      const config: ScoringConfig = {
+        formulas: [
+          {
+            id: 'total',
+            parameterName: 'totalScore',
+            expression: 'sum(q1, q2, q3)',
+          },
+        ],
+      };
+
+      const results = engine.calculateScore(config, {});
+
+      expect(results).toHaveLength(1);
+      expect(results[0].value).toBe(0);
+    });
   });
 });
