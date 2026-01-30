@@ -24,6 +24,10 @@ export function resolveFieldReference(
     return result;
   }
 
+  if (Array.isArray(answer)) {
+    return answer.length;
+  }
+
   return 0;
 }
 
@@ -35,6 +39,10 @@ export function convertToNumber(value: AnswerValue): number | null {
   if (typeof value === 'string') {
     const parsed = parseFloat(value);
     return isNaN(parsed) ? null : parsed;
+  }
+
+  if (Array.isArray(value)) {
+    return value.length;
   }
 
   return null;

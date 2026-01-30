@@ -36,6 +36,15 @@ export function validateRequired(
     return { isValid: false, errors };
   }
 
+  if (Array.isArray(value) && value.length === 0) {
+    errors.push({
+      questionId,
+      rule: 'required',
+      message: rule.message || 'This field is required',
+    });
+    return { isValid: false, errors };
+  }
+
   if (typeof value === 'string') {
     const trimmed = value.trim();
     if (trimmed === '') {

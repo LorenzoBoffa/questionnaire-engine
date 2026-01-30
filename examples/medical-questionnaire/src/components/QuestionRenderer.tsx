@@ -1,13 +1,15 @@
-import type { Question } from 'questionnaire-engine';
+import type { Question, AnswerValue, FileAnswerValue } from 'questionnaire-engine';
 import TextQuestion from './TextQuestion';
 import NumberQuestion from './NumberQuestion';
 import MultipleChoiceQuestion from './MultipleChoiceQuestion';
+import MultiSelectQuestion from './MultiSelectQuestion';
+import FileQuestion from './FileQuestion';
 
 interface QuestionRendererProps {
   question: Question;
-  value: string | number | undefined;
+  value: AnswerValue;
   error?: string;
-  onChange: (value: string | number) => void;
+  onChange: (value: AnswerValue) => void;
 }
 
 function QuestionRenderer({ question, value, error, onChange }: QuestionRendererProps) {
@@ -16,7 +18,7 @@ function QuestionRenderer({ question, value, error, onChange }: QuestionRenderer
       return (
         <TextQuestion
           question={question}
-          value={value}
+          value={value as string | undefined}
           error={error}
           onChange={(val) => onChange(val)}
         />
@@ -25,7 +27,7 @@ function QuestionRenderer({ question, value, error, onChange }: QuestionRenderer
       return (
         <NumberQuestion
           question={question}
-          value={value}
+          value={value as number | undefined}
           error={error}
           onChange={(val) => onChange(val)}
         />
@@ -34,13 +36,31 @@ function QuestionRenderer({ question, value, error, onChange }: QuestionRenderer
       return (
         <MultipleChoiceQuestion
           question={question}
-          value={value}
+          value={value as string | number | undefined}
           error={error}
           onChange={(val) => onChange(val)}
         />
       );
+    case 'multi-select':
+      return (
+        <MultiSelectQuestion
+          question={question}
+          value={Array.isArray(value) ? value : undefined}
+          error={error}
+          onChange={(val) => onChange(val)}
+        />
+      );
+    case 'file':
+      return (
+        <FileQuestion
+          question={question}
+          value={value != null && typeof value === 'object' && !Array.isArray(value) ? (value as FileAnswerValue) : undefined}
+          error={error}
+          onChange={(val) => onChange(val ?? undefined)}
+        />
+      );
     default:
-      return <div>Unknown question type: {(question as any).type}</div>;
+      return <div>Unknown question type: {(question as Question & { type: string }).type}</div>;
   }
 }
 

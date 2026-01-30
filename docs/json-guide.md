@@ -32,7 +32,7 @@ Sections group related questions together (can be used for pagination for exampl
 
 All questions share these properties:
 - `id` (string, required): Unique identifier
-- `type` (string, required): Question type (`text`, `number`, `multiple-choice`)
+- `type` (string, required): Question type (`text`, `number`, `multiple-choice`, `multi-select`, `file`)
 - `label` (string, required): Question text
 - `required` (boolean, optional): Whether the question is required
 - `visible` (boolean, optional): Initial visibility state (default: `true`)
@@ -81,11 +81,108 @@ All questions share these properties:
 }
 ```
 
+### Multi-select Question
+
+Allows selecting multiple options. The answer value is an array of selected option values.
+
+You can specify min/max selections either in the `validation` array (recommended) or as direct properties (backward compatible):
+
+```json
+{
+  "id": "symptoms",
+  "type": "multi-select",
+  "label": "Select any symptoms that apply",
+  "required": true,
+  "options": ["Headache", "Fever", "Cough", "Fatigue"],
+  "validation": [
+    { "type": "minSelections", "value": 1 },
+    { "type": "maxSelections", "value": 3 }
+  ]
+}
+```
+
+Or using direct properties:
+
+```json
+{
+  "id": "symptoms",
+  "type": "multi-select",
+  "label": "Select any symptoms that apply",
+  "required": true,
+  "options": ["Headache", "Fever", "Cough", "Fatigue"],
+  "minSelections": 1,
+  "maxSelections": 3
+}
+```
+
+Properties:
+- `options` (array, required): Same as multiple-choice: strings or `{ "value": "...", "label": "..." }`
+- `defaultValue` (array of strings, optional): Pre-selected option values
+- `minSelections` (number, optional): Minimum number of options that must be selected (use `validation` array preferred)
+- `maxSelections` (number, optional): Maximum number of options that can be selected (use `validation` array preferred)
+
+Use `engine.setAnswer(questionId, ['value1', 'value2'])` with an array of selected values.
+
+### File Question
+
+File questions support two use cases via `fileKind`:
+
+- **`image`**: Image upload. Use when you need dimensions (width/height) validated. Set `allowedExtensions` for image types (e.g. `.jpg`, `.png`, `.webp`). Optional `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (pixels) apply.
+- **`document`**: Generic file upload. Use for documents (PDF, spreadsheets, text). Set `allowedExtensions` for document types (e.g. `.pdf`, `.xls`, `.xlsx`, `.csv`, `.md`, `.txt`). Dimension constraints are ignored.
+
+Constraints can be specified in the `validation` array (recommended) or as direct properties (backward compatible).
+
+**Image upload example (validation array):**
+
+```json
+{
+  "id": "avatar",
+  "type": "file",
+  "label": "Upload your photo",
+  "fileKind": "image",
+  "validation": [
+    { "type": "allowedExtensions", "value": [".jpg", ".jpeg", ".png", ".webp"] },
+    { "type": "maxSizeBytes", "value": 5242880 },
+    { "type": "minWidth", "value": 100 },
+    { "type": "maxWidth", "value": 4000 },
+    { "type": "minHeight", "value": 100 },
+    { "type": "maxHeight", "value": 4000 }
+  ],
+  "required": true
+}
+```
+
+**Document upload example (validation array):**
+
+```json
+{
+  "id": "attachment",
+  "type": "file",
+  "label": "Upload a document (PDF, CSV, etc.)",
+  "fileKind": "document",
+  "validation": [
+    { "type": "allowedExtensions", "value": [".pdf", ".xls", ".xlsx", ".csv", ".md", ".txt"] },
+    { "type": "maxSizeBytes", "value": 10485760 }
+  ],
+  "required": false
+}
+```
+
+Direct properties are also supported: `allowedExtensions`, `maxSizeBytes`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight`.
+
+Properties:
+- `fileKind` (string, optional): `"image"` or `"document"`. If omitted and dimension constraints are set, treated as image.
+- `allowedExtensions` (array of strings, optional): e.g. `[".pdf", ".jpg"]` (use `validation` array preferred)
+- `maxSizeBytes` (number, optional): Maximum file size in bytes (use `validation` array preferred)
+- `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (number, optional): Pixel bounds; only applied when `fileKind` is `"image"` (use `validation` array preferred)
+
+The UI must read the file, obtain metadata (name, size, type, and for images width/height), and call `setAnswer(questionId, metadata)`. The engine validates only that metadata.
+
 ## Validation Rules
 
 Validation rules are defined in the `validation` array. Each rule has:
 - `type` (string, required): Rule type
-- `value` (number, optional): Threshold value for min/max rules
+- `value` (number or array of strings, optional): Threshold value; for `allowedExtensions` use an array of strings (e.g. `[".pdf", ".jpg"]`)
 - `message` (string, optional): Custom error message
 
 ### Available Rules
@@ -109,6 +206,24 @@ Validation rules are defined in the `validation` array. Each rule has:
 { "type": "maxLength", "value": 20 }
 { "type": "minLength", "value": 5, "message": "Must be at least 5 characters" }
 ```
+
+#### MinSelections/MaxSelections (for multi-select)
+```json
+{ "type": "minSelections", "value": 1 }
+{ "type": "maxSelections", "value": 3 }
+{ "type": "minSelections", "value": 2, "message": "Pick at least 2 options" }
+```
+
+#### File rules (for file questions)
+```json
+{ "type": "allowedExtensions", "value": [".pdf", ".jpg", ".png"] }
+{ "type": "maxSizeBytes", "value": 10485760 }
+{ "type": "minWidth", "value": 100 }
+{ "type": "maxWidth", "value": 4000 }
+{ "type": "minHeight", "value": 100 }
+{ "type": "maxHeight", "value": 4000 }
+```
+Dimension rules apply when `fileKind` is `"image"`.
 
 ## Formulas
 

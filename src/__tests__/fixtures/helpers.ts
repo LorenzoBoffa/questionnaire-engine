@@ -1,4 +1,4 @@
-import type { Question, TextQuestion, NumberQuestion, MultipleChoiceQuestion } from '../../types/questions';
+import type { Question, TextQuestion, NumberQuestion, MultipleChoiceQuestion, MultiSelectQuestion, FileQuestion } from '../../types/questions';
 import type { Questionnaire, Section } from '../../types/questionnaire';
 import type { AnswerValue } from '../../types/answers';
 
@@ -28,6 +28,27 @@ export function createMultipleChoiceQuestion(overrides?: Partial<MultipleChoiceQ
     type: 'multiple-choice',
     label: 'Test Multiple Choice Question',
     options: ['Option 1', 'Option 2', 'Option 3'],
+    required: false,
+    ...overrides,
+  };
+}
+
+export function createMultiSelectQuestion(overrides?: Partial<MultiSelectQuestion>): MultiSelectQuestion {
+  return {
+    id: 'q1',
+    type: 'multi-select',
+    label: 'Test Multi Select Question',
+    options: ['Option 1', 'Option 2', 'Option 3'],
+    required: false,
+    ...overrides,
+  };
+}
+
+export function createFileQuestion(overrides?: Partial<FileQuestion>): FileQuestion {
+  return {
+    id: 'q1',
+    type: 'file',
+    label: 'Upload a file',
     required: false,
     ...overrides,
   };

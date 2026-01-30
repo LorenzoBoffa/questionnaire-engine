@@ -1,6 +1,6 @@
 import type { ValidationRule } from './validation';
 
-export type QuestionType = 'text' | 'number' | 'multiple-choice';
+export type QuestionType = 'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file';
 
 export interface BaseQuestion {
   id: string;
@@ -36,4 +36,25 @@ export interface MultipleChoiceQuestion extends BaseQuestion {
   defaultValue?: string;
 }
 
-export type Question = TextQuestion | NumberQuestion | MultipleChoiceQuestion;
+export interface MultiSelectQuestion extends BaseQuestion {
+  type: 'multi-select';
+  options: string[] | MultipleChoiceOption[];
+  defaultValue?: string[];
+  minSelections?: number;
+  maxSelections?: number;
+}
+
+export type FileQuestionKind = 'image' | 'document';
+
+export interface FileQuestion extends BaseQuestion {
+  type: 'file';
+  fileKind?: FileQuestionKind;
+  allowedExtensions?: string[];
+  maxSizeBytes?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  minHeight?: number;
+  maxHeight?: number;
+}
+
+export type Question = TextQuestion | NumberQuestion | MultipleChoiceQuestion | MultiSelectQuestion | FileQuestion;

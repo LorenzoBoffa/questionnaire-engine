@@ -4,17 +4,21 @@ import { create as registryCreate, register, isRegistered, getRegisteredTypes, U
 import { createTextQuestion } from './textQuestion';
 import { createNumberQuestion } from './numberQuestion';
 import { createMultipleChoiceQuestion } from './multipleChoiceQuestion';
+import { createMultiSelectQuestion } from './multiSelectQuestion';
+import { createFileQuestion } from './fileQuestion';
 
 register('text', createTextQuestion);
 register('number', createNumberQuestion);
 register('multiple-choice', createMultipleChoiceQuestion);
+register('multi-select', createMultiSelectQuestion);
+register('file', createFileQuestion);
 
 export function createQuestion(data: Question): BaseQuestion {
   return registryCreate(data);
 }
 
 export function isQuestionType(type: string): type is QuestionType {
-  return type === 'text' || type === 'number' || type === 'multiple-choice';
+  return type === 'text' || type === 'number' || type === 'multiple-choice' || type === 'multi-select' || type === 'file';
 }
 
 export function setQuestionVisible(question: BaseQuestion, visible: boolean): BaseQuestion {
@@ -61,3 +65,19 @@ export {
   getMultipleChoiceOptions,
   isValidMultipleChoiceOption,
 } from './multipleChoiceQuestion';
+
+export {
+  createMultiSelectQuestion,
+  validateMultiSelectQuestion,
+  getMultiSelectQuestionDefaultValue,
+  serializeMultiSelectQuestion,
+  getMultiSelectOptions,
+  isValidMultiSelectOption,
+} from './multiSelectQuestion';
+
+export {
+  createFileQuestion,
+  validateFileQuestion,
+  getFileQuestionDefaultValue,
+  serializeFileQuestion,
+} from './fileQuestion';

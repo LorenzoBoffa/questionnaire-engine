@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { validateQuestion, validateAll, getErrorsForQuestion, hasErrors } from '../../validation/engine';
-import { createTextQuestion, createNumberQuestion, createMultipleChoiceQuestion } from '../fixtures/helpers';
+import {
+  createTextQuestion,
+  createNumberQuestion,
+  createMultipleChoiceQuestion,
+  createMultiSelectQuestion,
+  createFileQuestion,
+} from '../fixtures/helpers';
 import type { AnswerStore } from '../../types/answers';
 import type { ValidationResult } from '../../types/validation';
 
@@ -67,6 +73,41 @@ describe('Validation Engine', () => {
       const result = validateQuestion(question, 'test');
 
       expect(result.isValid).toBe(true);
+    });
+
+    it('should apply minSelections and maxSelections from validation array for multi-select', () => {
+      const question = createMultiSelectQuestion({
+        id: 'q1',
+        options: ['A', 'B', 'C'],
+        validation: [
+          { type: 'minSelections', value: 2 },
+          { type: 'maxSelections', value: 2 },
+        ],
+      });
+      expect(validateQuestion(question, ['A']).isValid).toBe(false);
+      expect(validateQuestion(question, ['A']).errors.some(e => e.rule === 'minSelections')).toBe(true);
+      expect(validateQuestion(question, ['A', 'B', 'C']).isValid).toBe(false);
+      expect(validateQuestion(question, ['A', 'B', 'C']).errors.some(e => e.rule === 'maxSelections')).toBe(true);
+      expect(validateQuestion(question, ['A', 'B']).isValid).toBe(true);
+    });
+
+    it('should apply allowedExtensions and maxSizeBytes from validation array for file', () => {
+      const question = createFileQuestion({
+        id: 'q1',
+        type: 'file',
+        validation: [
+          { type: 'allowedExtensions', value: ['.pdf'] },
+          { type: 'maxSizeBytes', value: 1000 },
+        ],
+      });
+      const validFile = { name: 'doc.pdf', size: 500, type: 'application/pdf' };
+      expect(validateQuestion(question, validFile).isValid).toBe(true);
+      const wrongExt = { name: 'doc.exe', size: 500, type: 'application/octet-stream' };
+      expect(validateQuestion(question, wrongExt).isValid).toBe(false);
+      expect(validateQuestion(question, wrongExt).errors.some(e => e.rule === 'allowedExtensions')).toBe(true);
+      const tooLarge = { name: 'doc.pdf', size: 2000, type: 'application/pdf' };
+      expect(validateQuestion(question, tooLarge).isValid).toBe(false);
+      expect(validateQuestion(question, tooLarge).errors.some(e => e.rule === 'maxSizeBytes')).toBe(true);
     });
   });
 

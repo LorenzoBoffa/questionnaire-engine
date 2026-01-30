@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createQuestion, getRegisteredTypes, isRegistered, UnknownQuestionTypeError } from '../../questions';
-import { createTextQuestion as createTestTextQuestion } from '../fixtures/helpers';
+import { createTextQuestion as createTestTextQuestion, createMultiSelectQuestion as createTestMultiSelectQuestion, createFileQuestion as createTestFileQuestion } from '../fixtures/helpers';
 
 describe('Question Registry', () => {
   describe('register', () => {
@@ -25,6 +25,24 @@ describe('Question Registry', () => {
       expect(() => createQuestion(invalidData)).toThrow(UnknownQuestionTypeError);
       expect(() => createQuestion(invalidData)).toThrow('Unknown question type: unknown-type');
     });
+
+    it('should create multi-select question from registry', () => {
+      const questionData = createTestMultiSelectQuestion({ id: 'ms1', label: 'Select many', options: ['A', 'B', 'C'] });
+      const question = createQuestion(questionData);
+
+      expect(question.id).toBe('ms1');
+      expect(question.type).toBe('multi-select');
+      expect(question.getDefaultValue()).toEqual([]);
+    });
+
+    it('should create file question from registry', () => {
+      const questionData = createTestFileQuestion({ id: 'f1', label: 'Upload', allowedExtensions: ['.pdf'] });
+      const question = createQuestion(questionData);
+
+      expect(question.id).toBe('f1');
+      expect(question.type).toBe('file');
+      expect(question.getDefaultValue()).toBeUndefined();
+    });
   });
 
   describe('getRegisteredTypes', () => {
@@ -34,7 +52,9 @@ describe('Question Registry', () => {
       expect(types).toContain('text');
       expect(types).toContain('number');
       expect(types).toContain('multiple-choice');
-      expect(types.length).toBeGreaterThanOrEqual(3);
+      expect(types).toContain('multi-select');
+      expect(types).toContain('file');
+      expect(types.length).toBeGreaterThanOrEqual(5);
     });
   });
 
@@ -43,6 +63,8 @@ describe('Question Registry', () => {
       expect(isRegistered('text')).toBe(true);
       expect(isRegistered('number')).toBe(true);
       expect(isRegistered('multiple-choice')).toBe(true);
+      expect(isRegistered('multi-select')).toBe(true);
+      expect(isRegistered('file')).toBe(true);
     });
 
     it('should return false for unregistered type', () => {

@@ -1,9 +1,22 @@
-export type ValidationRuleType = 'required' | 'min' | 'max' | 'minLength' | 'maxLength';
+export type ValidationRuleType =
+  | 'required'
+  | 'min'
+  | 'max'
+  | 'minLength'
+  | 'maxLength'
+  | 'minSelections'
+  | 'maxSelections'
+  | 'allowedExtensions'
+  | 'maxSizeBytes'
+  | 'minWidth'
+  | 'maxWidth'
+  | 'minHeight'
+  | 'maxHeight';
 
 export interface ValidationRule {
   type: ValidationRuleType;
   message?: string;
-  value?: number;
+  value?: number | string[];
 }
 
 export interface RequiredRule extends ValidationRule {
@@ -20,6 +33,12 @@ export interface MinMaxRule extends ValidationRule {
 export interface MinMaxLengthRule extends ValidationRule {
   type: 'minLength' | 'maxLength';
   value: number;
+  message?: string;
+}
+
+export interface AllowedExtensionsRule extends ValidationRule {
+  type: 'allowedExtensions';
+  value: string[];
   message?: string;
 }
 

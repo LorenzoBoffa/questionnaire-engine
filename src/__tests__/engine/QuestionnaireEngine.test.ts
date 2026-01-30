@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createQuestionnaireEngine, NotInitializedError, QuestionNotFoundError, InvalidQuestionnaireError } from '../../engine';
+import type { Questionnaire } from '../../types';
 import {
   simpleQuestionnaire,
   questionnaireWithValidation,
@@ -486,6 +487,93 @@ describe('QuestionnaireEngine', () => {
 
       const allAnswers = engine.getAllAnswers();
       expect(allAnswers.num1).toBe(15);
+    });
+  });
+
+  describe('multi-select and file question types', () => {
+    const questionnaireWithNewTypes: Questionnaire = {
+      id: 'test-new-types',
+      title: 'Questionnaire with multi-select and file',
+      sections: [
+        {
+          id: 's1',
+          title: 'Section',
+          questions: [
+            { id: 'q1', type: 'text', label: 'Name' },
+            {
+              id: 'q2',
+              type: 'multi-select',
+              label: 'Select options',
+              options: ['A', 'B', 'C'],
+              required: true,
+              minSelections: 1,
+              maxSelections: 2,
+            },
+            {
+              id: 'q3',
+              type: 'file',
+              label: 'Upload file',
+              allowedExtensions: ['.pdf'],
+              maxSizeBytes: 1000,
+              required: false,
+            },
+          ],
+        },
+      ],
+    };
+
+    it('should load questionnaire with multi-select and file questions', () => {
+      engine.load(questionnaireWithNewTypes);
+
+      const questions = engine.getCurrentQuestions();
+      expect(questions).toHaveLength(3);
+      expect(questions.map(q => q.type)).toContain('multi-select');
+      expect(questions.map(q => q.type)).toContain('file');
+    });
+
+    it('should setAnswer and getAnswer for multi-select (string[])', () => {
+      engine.load(questionnaireWithNewTypes);
+
+      engine.setAnswer('q2', ['A', 'B']);
+      expect(engine.getAnswer('q2')).toEqual(['A', 'B']);
+
+      const validation = engine.validate();
+      expect(validation.isValid).toBe(true);
+    });
+
+    it('should setAnswer and getAnswer for file (metadata object)', () => {
+      engine.load(questionnaireWithNewTypes);
+
+      const fileMeta = { name: 'doc.pdf', size: 500, type: 'application/pdf' };
+      engine.setAnswer('q3', fileMeta);
+      expect(engine.getAnswer('q3')).toEqual(fileMeta);
+    });
+
+    it('should validate multi-select required and minSelections', () => {
+      engine.load(questionnaireWithNewTypes);
+
+      engine.setAnswer('q1', 'User');
+      engine.setAnswer('q2', []);
+      const validation = engine.validate();
+      expect(validation.isValid).toBe(false);
+      expect(validation.errors.some(e => e.questionId === 'q2')).toBe(true);
+
+      engine.setAnswer('q2', ['A']);
+      const validation2 = engine.validate();
+      expect(validation2.isValid).toBe(true);
+    });
+
+    it('should return all answers including multi-select and file', () => {
+      engine.load(questionnaireWithNewTypes);
+
+      engine.setAnswer('q1', 'User');
+      engine.setAnswer('q2', ['A', 'B']);
+      engine.setAnswer('q3', { name: 'doc.pdf', size: 500, type: 'application/pdf' });
+
+      const all = engine.getAllAnswers();
+      expect(all.q1).toBe('User');
+      expect(all.q2).toEqual(['A', 'B']);
+      expect(all.q3).toEqual({ name: 'doc.pdf', size: 500, type: 'application/pdf' });
     });
   });
 });

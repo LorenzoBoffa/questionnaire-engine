@@ -13,6 +13,9 @@ export type {
   NumberQuestion,
   MultipleChoiceQuestion,
   MultipleChoiceOption,
+  MultiSelectQuestion,
+  FileQuestion,
+  FileQuestionKind,
 } from './questions';
 
 export type {
@@ -21,6 +24,7 @@ export type {
   RequiredRule,
   MinMaxRule,
   MinMaxLengthRule,
+  AllowedExtensionsRule,
   ValidationError,
   ValidationResult,
 } from './validation';
@@ -36,6 +40,7 @@ export type {
   Answer,
   AnswerValue,
   AnswerStore,
+  FileAnswerValue,
 } from './answers';
 
 export type {

@@ -232,6 +232,229 @@ describe('JSON Loader', () => {
         expect(choiceQuestion.options.length).toBeGreaterThan(0);
       }
     });
+
+    it('should parse multi-select questions', () => {
+      const loader = createJSONLoader();
+      const questionnaireWithMultiSelect = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              { id: 'q1', type: 'text', label: 'Name' },
+              {
+                id: 'q2',
+                type: 'multi-select',
+                label: 'Select options',
+                options: ['A', 'B', 'C'],
+                minSelections: 1,
+                maxSelections: 2,
+              },
+            ],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(questionnaireWithMultiSelect);
+
+      const multiSelectQuestion = questionnaire.sections[0].questions.find(q => q.type === 'multi-select');
+      expect(multiSelectQuestion).toBeDefined();
+      expect(multiSelectQuestion!.type).toBe('multi-select');
+      if (multiSelectQuestion && multiSelectQuestion.type === 'multi-select') {
+        expect(multiSelectQuestion.options).toEqual(['A', 'B', 'C']);
+        expect(multiSelectQuestion.minSelections).toBe(1);
+        expect(multiSelectQuestion.maxSelections).toBe(2);
+      }
+    });
+
+    it('should parse file questions', () => {
+      const loader = createJSONLoader();
+      const questionnaireWithFile = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              { id: 'q1', type: 'text', label: 'Name' },
+              {
+                id: 'q2',
+                type: 'file',
+                label: 'Upload document',
+                allowedExtensions: ['.pdf', '.jpg'],
+                maxSizeBytes: 1024000,
+                minWidth: 100,
+                maxWidth: 2000,
+              },
+            ],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(questionnaireWithFile);
+
+      const fileQuestion = questionnaire.sections[0].questions.find(q => q.type === 'file');
+      expect(fileQuestion).toBeDefined();
+      expect(fileQuestion!.type).toBe('file');
+      if (fileQuestion && fileQuestion.type === 'file') {
+        expect(fileQuestion.allowedExtensions).toEqual(['.pdf', '.jpg']);
+        expect(fileQuestion.maxSizeBytes).toBe(1024000);
+        expect(fileQuestion.minWidth).toBe(100);
+        expect(fileQuestion.maxWidth).toBe(2000);
+      }
+    });
+
+    it('should parse file questions with fileKind image', () => {
+      const loader = createJSONLoader();
+      const questionnaireWithImage = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              {
+                id: 'q1',
+                type: 'file',
+                label: 'Upload image',
+                fileKind: 'image',
+                allowedExtensions: ['.jpg', '.png', '.webp'],
+                maxSizeBytes: 5000000,
+                minWidth: 100,
+                maxWidth: 4000,
+                minHeight: 100,
+                maxHeight: 4000,
+              },
+            ],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(questionnaireWithImage);
+      const fileQuestion = questionnaire.sections[0].questions[0];
+      expect(fileQuestion.type).toBe('file');
+      if (fileQuestion.type === 'file') {
+        expect(fileQuestion.fileKind).toBe('image');
+        expect(fileQuestion.allowedExtensions).toEqual(['.jpg', '.png', '.webp']);
+      }
+    });
+
+    it('should parse file questions with fileKind document', () => {
+      const loader = createJSONLoader();
+      const questionnaireWithDocument = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              {
+                id: 'q1',
+                type: 'file',
+                label: 'Upload document',
+                fileKind: 'document',
+                allowedExtensions: ['.pdf', '.xls', '.xlsx', '.csv', '.md', '.txt'],
+                maxSizeBytes: 10485760,
+              },
+            ],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(questionnaireWithDocument);
+      const fileQuestion = questionnaire.sections[0].questions[0];
+      expect(fileQuestion.type).toBe('file');
+      if (fileQuestion.type === 'file') {
+        expect(fileQuestion.fileKind).toBe('document');
+        expect(fileQuestion.allowedExtensions).toEqual(['.pdf', '.xls', '.xlsx', '.csv', '.md', '.txt']);
+      }
+    });
+  });
+
+  describe('Multi-select and file structure validation', () => {
+    it('should reject multi-select with empty options', () => {
+      const loader = createJSONLoader();
+      const invalid = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              { id: 'q1', type: 'multi-select', label: 'Select', options: [] },
+            ],
+          },
+        ],
+      };
+      const result = loader.validateStructure(invalid);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.includes('options') || e.includes('non-empty'))).toBe(true);
+    });
+
+    it('should reject multi-select with missing options', () => {
+      const loader = createJSONLoader();
+      const invalid = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              { id: 'q1', type: 'multi-select', label: 'Select' },
+            ],
+          },
+        ],
+      };
+      const result = loader.validateStructure(invalid);
+
+      expect(result.isValid).toBe(false);
+    });
+
+    it('should reject file with invalid maxSizeBytes type', () => {
+      const loader = createJSONLoader();
+      const invalid = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              { id: 'q1', type: 'file', label: 'Upload', maxSizeBytes: 'not-a-number' },
+            ],
+          },
+        ],
+      };
+      const result = loader.validateStructure(invalid);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.includes('maxSizeBytes'))).toBe(true);
+    });
+
+    it('should reject file with invalid fileKind', () => {
+      const loader = createJSONLoader();
+      const invalid = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              { id: 'q1', type: 'file', label: 'Upload', fileKind: 'video' },
+            ],
+          },
+        ],
+      };
+      const result = loader.validateStructure(invalid);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.includes('fileKind'))).toBe(true);
+    });
   });
 
   describe('Validation Rule Parsing', () => {
@@ -250,6 +473,78 @@ describe('JSON Loader', () => {
 
       const numberQuestion = questionnaire.sections[0].questions.find(q => q.type === 'number');
       expect(numberQuestion?.validation).toBeDefined();
+    });
+
+    it('should parse validation array with minSelections and maxSelections', () => {
+      const loader = createJSONLoader();
+      const questionnaire = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              {
+                id: 'q1',
+                type: 'multi-select',
+                label: 'Select',
+                options: ['A', 'B', 'C'],
+                validation: [
+                  { type: 'minSelections', value: 1 },
+                  { type: 'maxSelections', value: 3, message: 'At most 3' },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const loaded = loader.loadFromObject(questionnaire);
+      const q = loaded.sections[0].questions[0];
+      expect(q.validation).toBeDefined();
+      expect(q.validation!.some(r => r.type === 'minSelections' && r.value === 1)).toBe(true);
+      expect(q.validation!.some(r => r.type === 'maxSelections' && r.value === 3 && r.message === 'At most 3')).toBe(true);
+    });
+
+    it('should parse validation array with allowedExtensions, maxSizeBytes, and dimension rules', () => {
+      const loader = createJSONLoader();
+      const questionnaire = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            questions: [
+              {
+                id: 'q1',
+                type: 'file',
+                label: 'Upload',
+                validation: [
+                  { type: 'allowedExtensions', value: ['.pdf', '.jpg'] },
+                  { type: 'maxSizeBytes', value: 1024 },
+                  { type: 'minWidth', value: 100 },
+                  { type: 'maxWidth', value: 800 },
+                  { type: 'minHeight', value: 100 },
+                  { type: 'maxHeight', value: 600 },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const loaded = loader.loadFromObject(questionnaire);
+      const q = loaded.sections[0].questions[0];
+      expect(q.validation).toBeDefined();
+      expect(q.validation!.find(r => r.type === 'allowedExtensions')).toEqual({
+        type: 'allowedExtensions',
+        value: ['.pdf', '.jpg'],
+      });
+      expect(q.validation!.find(r => r.type === 'maxSizeBytes')?.value).toBe(1024);
+      expect(q.validation!.find(r => r.type === 'minWidth')?.value).toBe(100);
+      expect(q.validation!.find(r => r.type === 'maxWidth')?.value).toBe(800);
+      expect(q.validation!.find(r => r.type === 'minHeight')?.value).toBe(100);
+      expect(q.validation!.find(r => r.type === 'maxHeight')?.value).toBe(600);
     });
   });
 

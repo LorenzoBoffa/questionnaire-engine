@@ -6,15 +6,21 @@
 - **text**: Single-line text input
 - **number**: Numeric input
 - **multiple-choice**: Single selection from a list of options
+- **multi-select**: Multiple selection from a list of options
+- **file**: File upload (image or document) with optional type/size/dimension constraints
 
 All questions support an optional **metadata** object (`Record<string, unknown>`) for passing additional info (e.g. icons, help text) to the UI layer.
 
 ### Validation Rules
 - **required**: Ensures field has a value
-- **min**: Minimum numeric value
-- **max**: Maximum numeric value
-- **minLength**: Minimum string length
-- **maxLength**: Maximum string length
+- **min** / **max**: Minimum/maximum numeric value (numbers)
+- **minLength** / **maxLength**: Minimum/maximum string length
+- **minSelections** / **maxSelections**: Minimum/maximum number of selected options (multi-select)
+- **allowedExtensions**: Allowed file extensions, e.g. `[".pdf", ".jpg"]` (file)
+- **maxSizeBytes**: Maximum file size in bytes (file)
+- **minWidth** / **maxWidth** / **minHeight** / **maxHeight**: Image dimension bounds in pixels (file, when `fileKind` is `"image"`)
+
+Multi-select and file constraints can be specified in the `validation` array (recommended) or as direct question properties for backward compatibility.
 
 ### Formula Engine
 - **Field References**: Access other question answers by ID (e.g., `q1`, `question-id`)

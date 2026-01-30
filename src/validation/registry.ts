@@ -3,6 +3,8 @@ import type { ValidationRule, ValidationRuleType, ValidationResult } from '../ty
 import type { AnswerValue } from '../types/answers';
 import { createRequiredValidator } from './functions/requiredValidator';
 import { createMinMaxValidator } from './functions/minMaxValidator';
+import { createMinMaxSelectionsValidator } from './functions/minMaxSelectionsValidator';
+import { createFileValidator } from './functions/fileValidator';
 
 const registry = new Map<ValidationRuleType, Validator>();
 
@@ -61,6 +63,8 @@ function getRegisteredTypes(): ValidationRuleType[] {
 
 registerValidator(createRequiredValidator());
 registerValidator(createMinMaxValidator());
+registerValidator(createMinMaxSelectionsValidator());
+registerValidator(createFileValidator());
 
 export {
   registerValidator,

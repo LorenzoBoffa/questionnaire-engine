@@ -234,6 +234,80 @@ select.question-input option {
   padding: 0.5rem;
 }
 
+.question-hint {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.multiselect-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.multiselect-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+
+.multiselect-option input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+}
+
+.file-question-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.file-input {
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.file-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.file-value .file-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.file-value .file-meta {
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.file-clear {
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+}
+
+.file-clear:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
 .test-validation-section {
   margin-bottom: 2rem;
 }

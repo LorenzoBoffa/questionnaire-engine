@@ -6,7 +6,7 @@ A comprehensive React application demonstrating the use of the `questionnaire-en
 
 This example showcases a fully-featured medical questionnaire that demonstrates the core capabilities of the questionnaire engine, including:
 
-- **Multiple Question Types**: Text, number, and multiple-choice questions
+- **Multiple Question Types**: Text, number, multiple-choice, multi-select, and file (image/document) questions
 - **Real-time Validation**: Field-level validation with custom error messages
 - **Conditional Logic**: Dynamic show/hide actions based on user responses
 - **Formula Calculations**: Computed values based on question answers
@@ -19,6 +19,8 @@ This example showcases a fully-featured medical questionnaire that demonstrates 
 - **Text Questions**: Single-line text inputs with length validation
 - **Number Questions**: Numeric inputs with min/max value constraints
 - **Multiple Choice Questions**: Single-selection dropdowns
+- **Multi-select Questions**: Checkboxes for selecting multiple options (with min/max selection limits)
+- **File Questions**: Image upload (with dimension validation) or document upload (PDF, CSV, TXT, etc.)
 
 ### Validation System
 - Required field validation
@@ -74,7 +76,7 @@ or
 pnpm dev
 ```
 
-The application will be available at `http://localhost:5173`
+The application will be available at `http://localhost:5173`. Scroll to the **Multi-select & File Test Section** to try multi-select (symptoms, 1–3 options) and file upload (image and document).
 
 ### Build
 
@@ -114,7 +116,12 @@ The medical questionnaire is defined in `src/questionnaire.json` and includes co
    - Multiple dependent questions
    - Insurance and medical condition workflows
 
-4. **Formulas Test Section**: Formula calculations
+4. **Multi-select & File Test Section**: Extended question types
+   - Multi-select with min/max selections (e.g. symptoms, 1–3 options)
+   - Image upload (photo) with optional dimension and size validation
+   - Document upload (PDF, CSV, TXT, MD) with size and extension validation
+
+5. **Formulas Test Section**: Formula calculations
    - Basic arithmetic operations
    - Sum function with multiple arguments
    - Formula dependencies
@@ -224,7 +231,7 @@ To customize the questionnaire for your use case:
 
 The engine supports extensive customization:
 
-- **Question Types**: Text, number, multiple-choice (extensible to add more)
+- **Question Types**: Text, number, multiple-choice, multi-select, file (image/document)
 - **Validation Rules**: Required, min, max, minLength, maxLength
 - **Conditional Actions**: Show/hide questions based on formula conditions
 - **Formulas**: Arithmetic, comparisons, logical operations, built-in functions
@@ -254,9 +261,11 @@ medical-questionnaire/
 │   └── components/
 │       ├── QuestionnaireForm.tsx  # Main form component
 │       ├── QuestionRenderer.tsx   # Question type router
-│       ├── TextQuestion.tsx      # Text input component
+│       ├── TextQuestion.tsx       # Text input component
 │       ├── NumberQuestion.tsx    # Number input component
-│       ├── MultipleChoiceQuestion.tsx # Multiple choice component
+│       ├── MultipleChoiceQuestion.tsx # Single-select dropdown
+│       ├── MultiSelectQuestion.tsx    # Multi-select checkboxes
+│       ├── FileQuestion.tsx       # File/image upload component
 │       └── FormulaResults.tsx    # Formula display component
 ├── index.html                     # HTML template
 ├── package.json                   # Dependencies and scripts

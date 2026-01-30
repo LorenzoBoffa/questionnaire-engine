@@ -190,7 +190,7 @@ function validateFieldType(data: any, field: string, expectedType: string, path:
 }
 
 function isValidQuestionType(type: string): type is QuestionType {
-  return type === 'text' || type === 'number' || type === 'multiple-choice';
+  return type === 'text' || type === 'number' || type === 'multiple-choice' || type === 'multi-select' || type === 'file';
 }
 
 function isValidActionType(type: string): type is ActionType {
@@ -198,7 +198,21 @@ function isValidActionType(type: string): type is ActionType {
 }
 
 function isValidValidationRuleType(type: string): type is ValidationRuleType {
-  return type === 'required' || type === 'min' || type === 'max' || type === 'minLength' || type === 'maxLength';
+  return (
+    type === 'required' ||
+    type === 'min' ||
+    type === 'max' ||
+    type === 'minLength' ||
+    type === 'maxLength' ||
+    type === 'minSelections' ||
+    type === 'maxSelections' ||
+    type === 'allowedExtensions' ||
+    type === 'maxSizeBytes' ||
+    type === 'minWidth' ||
+    type === 'maxWidth' ||
+    type === 'minHeight' ||
+    type === 'maxHeight'
+  );
 }
 
 function validateQuestionStructure(data: any, path: string): ValidationResult {
@@ -213,7 +227,7 @@ function validateQuestionStructure(data: any, path: string): ValidationResult {
   } else {
     const type = data.type;
     if (!isValidQuestionType(type)) {
-      errors.push(formatTypeError(`${path}.type`, "'text' | 'number' | 'multiple-choice'", type));
+      errors.push(formatTypeError(`${path}.type`, "'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file'", type));
     }
   }
 
@@ -227,6 +241,52 @@ function validateQuestionStructure(data: any, path: string): ValidationResult {
     } else {
       const optionsTypeResult = validateFieldType(data, 'options', 'array', path);
       if (!optionsTypeResult.isValid) errors.push(...optionsTypeResult.errors);
+    }
+  }
+
+  if (data.type === 'multi-select') {
+    const optionsResult = validateRequiredField(data, 'options', path);
+    if (!optionsResult.isValid) {
+      errors.push(...optionsResult.errors);
+    } else {
+      const optionsTypeResult = validateFieldType(data, 'options', 'array', path);
+      if (!optionsTypeResult.isValid) errors.push(...optionsTypeResult.errors);
+      else if (Array.isArray(data.options) && data.options.length === 0) {
+        errors.push(formatValidationError(path, 'options array must be non-empty'));
+      }
+    }
+    if (data.minSelections !== undefined && typeof data.minSelections !== 'number') {
+      errors.push(formatTypeError(`${path}.minSelections`, 'number', data.minSelections));
+    }
+    if (data.maxSelections !== undefined && typeof data.maxSelections !== 'number') {
+      errors.push(formatTypeError(`${path}.maxSelections`, 'number', data.maxSelections));
+    }
+  }
+
+  if (data.type === 'file') {
+    if (data.fileKind !== undefined) {
+      if (data.fileKind !== 'image' && data.fileKind !== 'document') {
+        errors.push(formatTypeError(`${path}.fileKind`, "'image' | 'document'", data.fileKind));
+      }
+    }
+    if (data.allowedExtensions !== undefined) {
+      const arrResult = validateFieldType(data, 'allowedExtensions', 'array', path);
+      if (!arrResult.isValid) errors.push(...arrResult.errors);
+    }
+    if (data.maxSizeBytes !== undefined && typeof data.maxSizeBytes !== 'number') {
+      errors.push(formatTypeError(`${path}.maxSizeBytes`, 'number', data.maxSizeBytes));
+    }
+    if (data.minWidth !== undefined && typeof data.minWidth !== 'number') {
+      errors.push(formatTypeError(`${path}.minWidth`, 'number', data.minWidth));
+    }
+    if (data.maxWidth !== undefined && typeof data.maxWidth !== 'number') {
+      errors.push(formatTypeError(`${path}.maxWidth`, 'number', data.maxWidth));
+    }
+    if (data.minHeight !== undefined && typeof data.minHeight !== 'number') {
+      errors.push(formatTypeError(`${path}.minHeight`, 'number', data.minHeight));
+    }
+    if (data.maxHeight !== undefined && typeof data.maxHeight !== 'number') {
+      errors.push(formatTypeError(`${path}.maxHeight`, 'number', data.maxHeight));
     }
   }
 
@@ -414,6 +474,36 @@ function parseValidationRules(data: any): ValidationRule[] {
               value: rule.value,
               message: rule.message,
             });
+          } else if (rule.type === 'minSelections' || rule.type === 'maxSelections') {
+            if (typeof rule.value === 'number') {
+              rules.push({
+                type: rule.type,
+                value: rule.value,
+                message: rule.message,
+              });
+            }
+          } else if (rule.type === 'allowedExtensions') {
+            if (Array.isArray(rule.value)) {
+              rules.push({
+                type: rule.type,
+                value: rule.value.map((e: unknown) => String(e)),
+                message: rule.message,
+              });
+            }
+          } else if (
+            rule.type === 'maxSizeBytes' ||
+            rule.type === 'minWidth' ||
+            rule.type === 'maxWidth' ||
+            rule.type === 'minHeight' ||
+            rule.type === 'maxHeight'
+          ) {
+            if (typeof rule.value === 'number') {
+              rules.push({
+                type: rule.type,
+                value: rule.value,
+                message: rule.message,
+              });
+            }
           }
         }
       }
@@ -494,6 +584,55 @@ function parseMultipleChoiceQuestion(data: any): Question {
   return question;
 }
 
+function parseMultiSelectQuestion(data: any): Question {
+  const validation = parseValidationRules(data);
+  const options = convertToArray(data.options, 'options');
+  const stringOptions = options.map((opt: any, index: number) => {
+    if (typeof opt === 'string') {
+      return opt;
+    }
+    if (typeof opt === 'object' && opt !== null && opt.value !== undefined) {
+      return convertToString(opt.value, `options[${index}].value`);
+    }
+    return convertToString(opt, `options[${index}]`);
+  });
+
+  const question: Question = {
+    id: convertToString(data.id, 'id'),
+    type: 'multi-select',
+    label: convertToString(data.label, 'label'),
+    required: data.required === true,
+    visible: data.visible !== undefined ? data.visible === true : undefined,
+    options: stringOptions,
+    defaultValue: Array.isArray(data.defaultValue) ? data.defaultValue.map((v: any, i: number) => typeof v === 'string' ? v : String(v)) : undefined,
+    minSelections: data.minSelections !== undefined ? convertToNumber(data.minSelections, 'minSelections') : undefined,
+    maxSelections: data.maxSelections !== undefined ? convertToNumber(data.maxSelections, 'maxSelections') : undefined,
+    validation: validation.length > 0 ? validation : undefined,
+  };
+  return question;
+}
+
+function parseFileQuestion(data: any): Question {
+  const validation = parseValidationRules(data);
+  const fileKind = data.fileKind === 'image' || data.fileKind === 'document' ? data.fileKind : undefined;
+  const question: Question = {
+    id: convertToString(data.id, 'id'),
+    type: 'file',
+    label: convertToString(data.label, 'label'),
+    required: data.required === true,
+    visible: data.visible !== undefined ? data.visible === true : undefined,
+    fileKind,
+    allowedExtensions: Array.isArray(data.allowedExtensions) ? data.allowedExtensions.map((e: any, i: number) => convertToString(e, `allowedExtensions[${i}]`)) : undefined,
+    maxSizeBytes: data.maxSizeBytes !== undefined ? convertToNumber(data.maxSizeBytes, 'maxSizeBytes') : undefined,
+    minWidth: data.minWidth !== undefined ? convertToNumber(data.minWidth, 'minWidth') : undefined,
+    maxWidth: data.maxWidth !== undefined ? convertToNumber(data.maxWidth, 'maxWidth') : undefined,
+    minHeight: data.minHeight !== undefined ? convertToNumber(data.minHeight, 'minHeight') : undefined,
+    maxHeight: data.maxHeight !== undefined ? convertToNumber(data.maxHeight, 'maxHeight') : undefined,
+    validation: validation.length > 0 ? validation : undefined,
+  };
+  return question;
+}
+
 function createTextQuestionParser(): QuestionParser {
   return {
     parse: (data: any) => parseTextQuestion(data),
@@ -518,6 +657,22 @@ function createMultipleChoiceQuestionParser(): QuestionParser {
   };
 }
 
+function createMultiSelectQuestionParser(): QuestionParser {
+  return {
+    parse: (data: any) => parseMultiSelectQuestion(data),
+    canParse: (type: QuestionType) => type === 'multi-select',
+    validate: (data: any) => validateQuestionStructure(data, 'question'),
+  };
+}
+
+function createFileQuestionParser(): QuestionParser {
+  return {
+    parse: (data: any) => parseFileQuestion(data),
+    canParse: (type: QuestionType) => type === 'file',
+    validate: (data: any) => validateQuestionStructure(data, 'question'),
+  };
+}
+
 const questionParserRegistry = new Map<QuestionType, QuestionParser>();
 
 function registerQuestionParser(type: QuestionType, parser: QuestionParser): void {
@@ -531,7 +686,7 @@ function getQuestionParser(type: QuestionType): QuestionParser | undefined {
 function parseQuestion(data: any): Question {
   const type = convertToString(data.type, 'type');
   if (!isValidQuestionType(type)) {
-    throw new InvalidTypeError(formatTypeError('type', "'text' | 'number' | 'multiple-choice'", type));
+    throw new InvalidTypeError(formatTypeError('type', "'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file'", type));
   }
 
   const parser = getQuestionParser(type);
@@ -545,6 +700,8 @@ function parseQuestion(data: any): Question {
 registerQuestionParser('text', createTextQuestionParser());
 registerQuestionParser('number', createNumberQuestionParser());
 registerQuestionParser('multiple-choice', createMultipleChoiceQuestionParser());
+registerQuestionParser('multi-select', createMultiSelectQuestionParser());
+registerQuestionParser('file', createFileQuestionParser());
 
 function validateFormulaId(id: any): ValidationResult {
   if (id === null || id === undefined || id === '') {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { type QuestionnaireEngine, type EngineState, type ScoreResult, type RawAnswer, type ScoringConfig } from 'questionnaire-engine';
+import { type QuestionnaireEngine, type EngineState, type ScoreResult, type RawAnswer, type ScoringConfig, type AnswerValue } from 'questionnaire-engine';
 import type { Question } from 'questionnaire-engine';
 import QuestionRenderer from './QuestionRenderer';
 import FormulaResults from './FormulaResults';
@@ -51,9 +51,19 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
     }
   }, []);
 
-  const handleAnswerChange = (questionId: string, value: string | number) => {
+  const handleAnswerChange = (questionId: string, value: AnswerValue) => {
     engine.setAnswer(questionId, value);
     setSubmitError(null);
+  };
+
+  const formatAnswerValue = (v: AnswerValue): string => {
+    if (v == null) return '';
+    if (Array.isArray(v)) return (v as string[]).join(', ');
+    if (typeof v === 'object' && v !== null && 'name' in v && 'size' in v) {
+      const f = v as { name: string; size: number };
+      return `${f.name} (${(f.size / 1024).toFixed(1)} KB)`;
+    }
+    return String(v);
   };
 
   const handleSubmit = () => {
@@ -79,7 +89,12 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
 
       const answersMap: Record<string, string | number> = {};
       result.answers.forEach(answer => {
-        answersMap[answer.questionId] = answer.value as string | number;
+        const v = answer.value;
+        if (typeof v === 'string' || typeof v === 'number') {
+          answersMap[answer.questionId] = v;
+        } else if (Array.isArray(v)) {
+          answersMap[answer.questionId] = (v as string[]).length;
+        }
       });
 
       const scores = engine.calculateScore(scoringConfig, answersMap);
@@ -115,7 +130,7 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
                   ? questionErrors.map(e => e.message).join(', ')
                   : undefined;
                 const currentAnswer = engine.getAnswer(question.id);
-                const value: string | number | undefined = currentAnswer === null ? undefined : currentAnswer;
+                const value: AnswerValue = currentAnswer === null ? undefined : currentAnswer;
 
                 return (
                   <div key={question.id} className="question-wrapper">
@@ -123,7 +138,7 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
                       question={question}
                       value={value}
                       error={errorMessage}
-                      onChange={(value) => handleAnswerChange(question.id, value)}
+                      onChange={(val) => handleAnswerChange(question.id, val)}
                     />
                   </div>
                 );
@@ -165,7 +180,7 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
               {submittedAnswers.map((answer) => (
                 <div key={answer.questionId} className="answer-item">
                   <span className="answer-question-id">{answer.questionId}:</span>
-                  <span className="answer-value">{String(answer.value)}</span>
+                  <span className="answer-value">{formatAnswerValue(answer.value)}</span>
                 </div>
               ))}
             </div>
