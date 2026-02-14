@@ -36,7 +36,7 @@ function getDimensionBounds(question: FileQuestionType) {
   const get = (type: 'minWidth' | 'maxWidth' | 'minHeight' | 'maxHeight') => {
     const rule = question.validation?.find((r) => r.type === type);
     const v = rule && typeof rule.value === 'number' ? rule.value : undefined;
-    const direct = (question as Record<string, unknown>)[type];
+    const direct = question[type];
     return (typeof direct === 'number' ? direct : undefined) ?? v ?? null;
   };
   return {

@@ -3,6 +3,7 @@ import type {
   Section,
   Question,
   QuestionType,
+  MultipleChoiceOption,
   ValidationRule,
   ValidationRuleType,
   Action,
@@ -561,12 +562,15 @@ function parseNumberQuestion(data: any): Question {
 function parseMultipleChoiceQuestion(data: any): Question {
   const validation = parseValidationRules(data);
   const options = convertToArray(data.options, 'options');
-  const stringOptions = options.map((opt: any, index: number) => {
+  const parsedOptions = options.map((opt: any, index: number) => {
     if (typeof opt === 'string') {
       return opt;
     }
     if (typeof opt === 'object' && opt !== null && opt.value !== undefined) {
-      return convertToString(opt.value, `options[${index}].value`);
+      return {
+        value: convertToString(opt.value, `options[${index}].value`),
+        label: convertToString(opt.label ?? opt.value, `options[${index}].label`),
+      };
     }
     return convertToString(opt, `options[${index}]`);
   });
@@ -577,7 +581,7 @@ function parseMultipleChoiceQuestion(data: any): Question {
     label: convertToString(data.label, 'label'),
     required: data.required === true,
     visible: data.visible !== undefined ? data.visible === true : undefined,
-    options: stringOptions,
+    options: parsedOptions as string[] | MultipleChoiceOption[],
     defaultValue: data.defaultValue ? convertToString(data.defaultValue, 'defaultValue') : undefined,
     validation: validation.length > 0 ? validation : undefined,
   };
@@ -587,12 +591,15 @@ function parseMultipleChoiceQuestion(data: any): Question {
 function parseMultiSelectQuestion(data: any): Question {
   const validation = parseValidationRules(data);
   const options = convertToArray(data.options, 'options');
-  const stringOptions = options.map((opt: any, index: number) => {
+  const parsedOptions = options.map((opt: any, index: number) => {
     if (typeof opt === 'string') {
       return opt;
     }
     if (typeof opt === 'object' && opt !== null && opt.value !== undefined) {
-      return convertToString(opt.value, `options[${index}].value`);
+      return {
+        value: convertToString(opt.value, `options[${index}].value`),
+        label: convertToString(opt.label ?? opt.value, `options[${index}].label`),
+      };
     }
     return convertToString(opt, `options[${index}]`);
   });
@@ -603,7 +610,8 @@ function parseMultiSelectQuestion(data: any): Question {
     label: convertToString(data.label, 'label'),
     required: data.required === true,
     visible: data.visible !== undefined ? data.visible === true : undefined,
-    options: stringOptions,
+    // @ts-ignore TODO: extend in questionnaire engine to support multiple choice options
+    options: parsedOptions,
     defaultValue: Array.isArray(data.defaultValue) ? data.defaultValue.map((v: any, i: number) => typeof v === 'string' ? v : String(v)) : undefined,
     minSelections: data.minSelections !== undefined ? convertToNumber(data.minSelections, 'minSelections') : undefined,
     maxSelections: data.maxSelections !== undefined ? convertToNumber(data.maxSelections, 'maxSelections') : undefined,

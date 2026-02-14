@@ -438,8 +438,15 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): Express
       const left = evaluateNode(binNode.left, context);
       const right = evaluateNode(binNode.right, context);
 
-      const leftNum = typeof left === 'number' ? left : (left === null ? 0 : typeof left === 'boolean' ? (left ? 1 : 0) : 0);
-      const rightNum = typeof right === 'number' ? right : (right === null ? 0 : typeof right === 'boolean' ? (right ? 1 : 0) : 0);
+      const toNum = (v: ExpressionValue): number => {
+        if (typeof v === 'number') return isNaN(v) ? 0 : v;
+        if (v === null) return 0;
+        if (typeof v === 'boolean') return v ? 1 : 0;
+        if (typeof v === 'string') { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+        return 0;
+      };
+      const leftNum = toNum(left);
+      const rightNum = toNum(right);
       const leftBool = typeof left === 'boolean' ? left : leftNum !== 0;
       const rightBool = typeof right === 'boolean' ? right : rightNum !== 0;
 
