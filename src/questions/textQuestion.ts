@@ -52,25 +52,23 @@ export function validateTextQuestion(
   }
 
   const minLengthRule = question.validation?.find(r => r.type === 'minLength');
-  if (minLengthRule && minLengthRule.value !== undefined) {
-    if (stringValue.length < minLengthRule.value) {
-      errors.push({
-        questionId: question.id,
-        rule: 'minLength',
-        message: minLengthRule.message || `Minimum length is ${minLengthRule.value}`,
-      });
-    }
+  const minLen = minLengthRule && typeof minLengthRule.value === 'number' ? minLengthRule.value : undefined;
+  if (minLen !== undefined && stringValue.length < minLen) {
+    errors.push({
+      questionId: question.id,
+      rule: 'minLength',
+      message: minLengthRule?.message || `Minimum length is ${minLen}`,
+    });
   }
 
   const maxLengthRule = question.validation?.find(r => r.type === 'maxLength');
-  if (maxLengthRule && maxLengthRule.value !== undefined) {
-    if (stringValue.length > maxLengthRule.value) {
-      errors.push({
-        questionId: question.id,
-        rule: 'maxLength',
-        message: maxLengthRule.message || `Maximum length is ${maxLengthRule.value}`,
-      });
-    }
+  const maxLen = maxLengthRule && typeof maxLengthRule.value === 'number' ? maxLengthRule.value : undefined;
+  if (maxLen !== undefined && stringValue.length > maxLen) {
+    errors.push({
+      questionId: question.id,
+      rule: 'maxLength',
+      message: maxLengthRule?.message || `Maximum length is ${maxLen}`,
+    });
   }
 
   return {

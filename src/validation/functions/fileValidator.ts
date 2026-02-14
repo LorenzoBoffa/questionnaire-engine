@@ -74,7 +74,7 @@ export function validateFileRule(
   }
 
   const numValue = typeof rule.value === 'number' ? rule.value : undefined;
-  if (numValue === undefined && rule.type !== 'allowedExtensions') {
+  if (numValue === undefined) {
     return { isValid: true, errors: [] };
   }
 

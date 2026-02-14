@@ -53,25 +53,23 @@ export function validateNumberQuestion(
   }
 
   const minRule = question.validation?.find(r => r.type === 'min') || (question.min !== undefined ? { type: 'min' as const, value: question.min } : null);
-  if (minRule && minRule.value !== undefined) {
-    if (numValue < minRule.value) {
-      errors.push({
-        questionId: question.id,
-        rule: 'min',
-        message: minRule.message || `Minimum value is ${minRule.value}`,
-      });
-    }
+  const minVal = minRule && typeof minRule.value === 'number' ? minRule.value : undefined;
+  if (minVal !== undefined && numValue < minVal) {
+    errors.push({
+      questionId: question.id,
+      rule: 'min',
+      message: minRule?.message || `Minimum value is ${minVal}`,
+    });
   }
 
   const maxRule = question.validation?.find(r => r.type === 'max') || (question.max !== undefined ? { type: 'max' as const, value: question.max } : null);
-  if (maxRule && maxRule.value !== undefined) {
-    if (numValue > maxRule.value) {
-      errors.push({
-        questionId: question.id,
-        rule: 'max',
-        message: maxRule.message || `Maximum value is ${maxRule.value}`,
-      });
-    }
+  const maxVal = maxRule && typeof maxRule.value === 'number' ? maxRule.value : undefined;
+  if (maxVal !== undefined && numValue > maxVal) {
+    errors.push({
+      questionId: question.id,
+      rule: 'max',
+      message: maxRule?.message || `Maximum value is ${maxVal}`,
+    });
   }
 
   return {

@@ -27,40 +27,43 @@ export function validateMinMax(
     if (value === null || value === undefined || value === '') {
       return { isValid: true, errors: [] };
     }
-    if (rule.value === undefined) {
+    const minVal = typeof rule.value === 'number' ? rule.value : undefined;
+    if (minVal === undefined) {
       return { isValid: true, errors: [] };
     }
     const numValue = typeof value === 'string' ? parseFloat(value) : Number(value);
     if (isNaN(numValue)) {
       return { isValid: true, errors: [] };
     }
-    if (numValue < rule.value) {
+    if (numValue < minVal) {
       errors.push({
         questionId,
         rule: 'min',
-        message: rule.message || `Value must be at least ${rule.value}`,
+        message: rule.message || `Value must be at least ${minVal}`,
       });
     }
   } else if (rule.type === 'max') {
     if (value === null || value === undefined || value === '') {
       return { isValid: true, errors: [] };
     }
-    if (rule.value === undefined) {
+    const maxVal = typeof rule.value === 'number' ? rule.value : undefined;
+    if (maxVal === undefined) {
       return { isValid: true, errors: [] };
     }
     const numValue = typeof value === 'string' ? parseFloat(value) : Number(value);
     if (isNaN(numValue)) {
       return { isValid: true, errors: [] };
     }
-    if (numValue > rule.value) {
+    if (numValue > maxVal) {
       errors.push({
         questionId,
         rule: 'max',
-        message: rule.message || `Value must be at most ${rule.value}`,
+        message: rule.message || `Value must be at most ${maxVal}`,
       });
     }
   } else if (rule.type === 'minLength') {
-    if (rule.value === undefined) {
+    const minLenVal = typeof rule.value === 'number' ? rule.value : undefined;
+    if (minLenVal === undefined) {
       return { isValid: true, errors: [] };
     }
     const isEmpty = value === null || value === undefined || value === '';
@@ -70,16 +73,17 @@ export function validateMinMax(
       return { isValid: true, errors: [] };
     }
     const stringValue = value === null || value === undefined ? '' : String(value);
-    if (stringValue.length < rule.value) {
+    if (stringValue.length < minLenVal) {
       const error = {
         questionId,
         rule: 'minLength' as const,
-        message: rule.message || `Must be at least ${rule.value} characters`,
+        message: rule.message || `Must be at least ${minLenVal} characters`,
       };
       errors.push(error);
     }
   } else if (rule.type === 'maxLength') {
-    if (rule.value === undefined) {
+    const maxLenVal = typeof rule.value === 'number' ? rule.value : undefined;
+    if (maxLenVal === undefined) {
       return { isValid: true, errors: [] };
     }
     const isEmpty = value === null || value === undefined || value === '';
@@ -89,11 +93,11 @@ export function validateMinMax(
       return { isValid: true, errors: [] };
     }
     const stringValue = value === null || value === undefined ? '' : String(value);
-    if (stringValue.length > rule.value) {
+    if (stringValue.length > maxLenVal) {
       errors.push({
         questionId,
         rule: 'maxLength',
-        message: rule.message || `Must be at most ${rule.value} characters`,
+        message: rule.message || `Must be at most ${maxLenVal} characters`,
       });
     }
   }
