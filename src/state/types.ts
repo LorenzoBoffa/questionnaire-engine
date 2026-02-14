@@ -3,7 +3,6 @@ import type { Questionnaire, FormulaResult } from '../types/questionnaire';
 import type { Question } from '../types/questions';
 import type { ValidationResult, ValidationError } from '../types/validation';
 import type { FormulaEngine } from '../formulas/types';
-import type { ActionEngine } from '../actions/types';
 
 export interface AnswerStore {
   setAnswer(questionId: string, value: AnswerValue): void;

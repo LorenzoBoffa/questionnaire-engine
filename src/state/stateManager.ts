@@ -19,6 +19,7 @@ export function createStateManager(
   const subscribers = new Set<StateChangeCallback>();
   let validationResult: ValidationResult | null = null;
   let formulaResults: FormulaResult[] = [];
+  let showValidationErrors = false;
 
   function loadQuestionnaire(newQuestionnaire: Questionnaire): void {
     questionnaire = newQuestionnaire;
@@ -70,11 +71,13 @@ export function createStateManager(
     const questions = getCurrentQuestions();
     const answers = answerStore.getAllAnswers();
     validationResult = validationEngine.validateAll(questions, answers);
+    showValidationErrors = false;
 
     notifySubscribers();
   }
 
   function setAnswer(questionId: string, value: AnswerValue): void {
+    showValidationErrors = true;
     answerStore.setAnswer(questionId, value);
     updateState(questionId);
   }
@@ -132,6 +135,7 @@ export function createStateManager(
   }
 
   function validate(): ValidationResult {
+    showValidationErrors = true;
     const questions = getCurrentQuestions();
     const answers = answerStore.getAllAnswers();
     validationResult = validationEngine.validateAll(questions, answers);
@@ -140,6 +144,7 @@ export function createStateManager(
   }
 
   function getValidationErrors(): ValidationError[] {
+    if (!showValidationErrors) return [];
     return validationResult?.errors || [];
   }
 
@@ -150,6 +155,7 @@ export function createStateManager(
       answerStore.clearAll();
       validationResult = null;
       formulaResults = [];
+      showValidationErrors = false;
       notifySubscribers();
     }
   }

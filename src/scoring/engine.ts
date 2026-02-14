@@ -1,5 +1,5 @@
 import type { ScoringEngine, ScoringEngineDependencies } from './types';
-import type { ScoreFormula, ScoreResult, ScoringConfig } from '../types/scoring';
+import type { ScoreResult, ScoringConfig } from '../types/scoring';
 import type { AnswerStore } from '../types/answers';
 import { buildDependencyGraph, topologicalSort } from '../formulas/utils';
 
