@@ -28,6 +28,13 @@ describe('Formula Engine', () => {
 
       expect(result).toBe(30);
     });
+
+    it('should evaluate log(10) via formula engine', () => {
+      const engine = createFormulaEngine();
+      const answers: AnswerStore = {};
+      const result = engine.evaluate('log(10)', answers);
+      expect(result).toBeCloseTo(Math.log(10), 5);
+    });
   });
 
   describe('evaluateFormula', () => {

@@ -101,6 +101,70 @@ describe('Expression Evaluator', () => {
 
       expect(result).toBe(0);
     });
+
+    it('should evaluate log(1) as 0', () => {
+      const evaluator = createExpressionEvaluator();
+      const functionRegistry = createFunctionRegistry();
+      const context: EvaluationContext = {
+        answers: {},
+        functions: functionRegistry,
+      };
+      const result = evaluator.evaluate('log(1)', context);
+      expect(result).toBe(0);
+    });
+
+    it('should evaluate log(e) as approximately 1', () => {
+      const evaluator = createExpressionEvaluator();
+      const functionRegistry = createFunctionRegistry();
+      const context: EvaluationContext = {
+        answers: {},
+        functions: functionRegistry,
+      };
+      const result = evaluator.evaluate('log(2.718281828)', context);
+      expect(result).toBeCloseTo(1, 5);
+    });
+
+    it('should evaluate log(10) as approximately 2.302585', () => {
+      const evaluator = createExpressionEvaluator();
+      const functionRegistry = createFunctionRegistry();
+      const context: EvaluationContext = {
+        answers: {},
+        functions: functionRegistry,
+      };
+      const result = evaluator.evaluate('log(10)', context);
+      expect(result).toBeCloseTo(2.302585092994046, 5);
+    });
+
+    it('should evaluate log with field reference', () => {
+      const evaluator = createExpressionEvaluator();
+      const functionRegistry = createFunctionRegistry();
+      const context: EvaluationContext = {
+        answers: { x: 10 },
+        functions: functionRegistry,
+      };
+      const result = evaluator.evaluate('log(x)', context);
+      expect(result).toBeCloseTo(2.302585092994046, 5);
+    });
+
+    it('should throw when log has no arguments', () => {
+      const evaluator = createExpressionEvaluator();
+      const functionRegistry = createFunctionRegistry();
+      const context: EvaluationContext = {
+        answers: {},
+        functions: functionRegistry,
+      };
+      expect(() => evaluator.evaluate('log()', context)).toThrow();
+    });
+
+    it('should throw when log has two arguments', () => {
+      const evaluator = createExpressionEvaluator();
+      const functionRegistry = createFunctionRegistry();
+      const context: EvaluationContext = {
+        answers: {},
+        functions: functionRegistry,
+      };
+      expect(() => evaluator.evaluate('log(10, 2)', context)).toThrow();
+    });
   });
 
   describe('Binary Operations', () => {

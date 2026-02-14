@@ -1,5 +1,6 @@
 import type { FormulaFunction, FunctionRegistry, EvaluationContext, ExpressionValue } from './types';
 import { createSumFunction } from './functions/sum';
+import { createLogFunction } from './functions/log';
 
 const registry = new Map<string, FormulaFunction>();
 
@@ -30,6 +31,7 @@ function getRegisteredFunctions(): string[] {
 export function createFunctionRegistry(): FunctionRegistry {
   if (registry.size === 0) {
     registerFunction('sum', createSumFunction());
+    registerFunction('log', createLogFunction());
   }
   return {
     register: registerFunction,

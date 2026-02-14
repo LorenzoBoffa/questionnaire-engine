@@ -28,7 +28,7 @@ Multi-select and file constraints can be specified in the `validation` array (re
 - **Comparison Operators**: `>`, `<`, `>=`, `<=`, `==`, `!=`
 - **Logical Operators**: `&&`, `||`
 - **Unary Operations**: `-`, `+`, `!`
-- **Built-in Functions**: `sum(...)` - sums numeric values from arguments
+- **Built-in Functions**: `sum(...)` - sums numeric values from arguments; `log(x)` - natural logarithm of x
 - **Literals**: Numbers, strings (quoted), booleans (`true`, `false`)
 - **Parentheses**: Grouping for precedence
 
