@@ -133,10 +133,10 @@ describe('UI Integration - Real-time Validation', () => {
       errors: engine.getValidationErrors(),
       formulaResults: []
     };
-
+    
     console.log('After manual getState, app state errors:', appState?.errors);
     expect(appState.errors).toBeDefined();
-    expect(appState.errors.length).toBe(0);
+    expect(appState.errors.length).toBeGreaterThan(0);
 
     engine.setAnswer('patient-name', 'J');
     

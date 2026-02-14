@@ -5,6 +5,7 @@ import type {
   QuestionType,
   MultipleChoiceOption,
   ValidationRule,
+  ValidationRuleType,
   Action,
   ActionType,
   Formula,
@@ -74,6 +75,10 @@ export class InvalidTypeError extends Error {
     super(message);
     this.name = 'InvalidTypeError';
   }
+}
+
+function createFieldPath(segments: string[]): string {
+  return segments.join('.');
 }
 
 function formatMissingFieldError(path: string, field: string): string {
@@ -191,6 +196,25 @@ function isValidQuestionType(type: string): type is QuestionType {
 
 function isValidActionType(type: string): type is ActionType {
   return type === 'show' || type === 'hide';
+}
+
+function isValidValidationRuleType(type: string): type is ValidationRuleType {
+  return (
+    type === 'required' ||
+    type === 'min' ||
+    type === 'max' ||
+    type === 'minLength' ||
+    type === 'maxLength' ||
+    type === 'email' ||
+    type === 'minSelections' ||
+    type === 'maxSelections' ||
+    type === 'allowedExtensions' ||
+    type === 'maxSizeBytes' ||
+    type === 'minWidth' ||
+    type === 'maxWidth' ||
+    type === 'minHeight' ||
+    type === 'maxHeight'
+  );
 }
 
 function validateQuestionStructure(data: any, path: string): ValidationResult {
@@ -502,6 +526,13 @@ function parseValidationRules(data: any): ValidationRule[] {
   return rules;
 }
 
+function createValidationRuleParser(): ValidationRuleParser {
+  return {
+    parse: (data: any) => parseValidationRules(data),
+    normalize: (data: any) => normalizeValidationData(data),
+  };
+}
+
 function parseTextQuestion(data: any): Question {
   const validation = parseValidationRules(data);
   const question: Question = {
@@ -587,7 +618,7 @@ function parseMultiSelectQuestion(data: any): Question {
     visible: data.visible !== undefined ? data.visible === true : undefined,
     // @ts-ignore TODO: extend in questionnaire engine to support multiple choice options
     options: parsedOptions,
-    defaultValue: Array.isArray(data.defaultValue) ? data.defaultValue.map((v: any) => typeof v === 'string' ? v : String(v)) : undefined,
+    defaultValue: Array.isArray(data.defaultValue) ? data.defaultValue.map((v: any, i: number) => typeof v === 'string' ? v : String(v)) : undefined,
     minSelections: data.minSelections !== undefined ? convertToNumber(data.minSelections, 'minSelections') : undefined,
     maxSelections: data.maxSelections !== undefined ? convertToNumber(data.maxSelections, 'maxSelections') : undefined,
     validation: validation.length > 0 ? validation : undefined,
@@ -706,6 +737,31 @@ function validateFormulaExpression(expression: any): ValidationResult {
   return { isValid: true, errors: [] };
 }
 
+function validateFormulaTarget(target: any): ValidationResult {
+  if (target === null || target === undefined) {
+    return { isValid: true, errors: [] };
+  }
+  if (typeof target !== 'string') {
+    return { isValid: false, errors: [formatTypeError('formula.target', 'string', target)] };
+  }
+  return { isValid: true, errors: [] };
+}
+
+function validateFormulaStructure(data: any): ValidationResult {
+  const errors: string[] = [];
+
+  const idResult = validateFormulaId(data.id);
+  if (!idResult.isValid) errors.push(...idResult.errors);
+
+  const expressionResult = validateFormulaExpression(data.expression);
+  if (!expressionResult.isValid) errors.push(...expressionResult.errors);
+
+  const targetResult = validateFormulaTarget(data.target);
+  if (!targetResult.isValid) errors.push(...targetResult.errors);
+
+  return { isValid: errors.length === 0, errors };
+}
+
 function parseFormula(data: any): Formula {
   const idResult = validateFormulaId(data.id);
   if (!idResult.isValid) {
@@ -739,6 +795,13 @@ function parseFormulaArray(data: any[]): Formula[] {
   });
 }
 
+function createFormulaParser(): FormulaParser {
+  return {
+    parse: (data: any) => parseFormula(data),
+    validate: (data: any) => validateFormulaStructure(data),
+  };
+}
+
 function validateActionType(type: any): ValidationResult {
   if (type === null || type === undefined || type === '') {
     return { isValid: false, errors: ['Action type is required'] };
@@ -770,6 +833,21 @@ function validateActionTarget(target: any): ValidationResult {
     return { isValid: false, errors: [formatTypeError('action.target', 'string', target)] };
   }
   return { isValid: true, errors: [] };
+}
+
+function validateActionStructure(data: any): ValidationResult {
+  const errors: string[] = [];
+
+  const typeResult = validateActionType(data.type);
+  if (!typeResult.isValid) errors.push(...typeResult.errors);
+
+  const conditionResult = validateActionCondition(data.condition);
+  if (!conditionResult.isValid) errors.push(...conditionResult.errors);
+
+  const targetResult = validateActionTarget(data.target);
+  if (!targetResult.isValid) errors.push(...targetResult.errors);
+
+  return { isValid: errors.length === 0, errors };
 }
 
 function parseAction(data: any): Action {
@@ -809,6 +887,13 @@ function parseActionArray(data: any[]): Action[] {
       throw error;
     }
   });
+}
+
+function createActionParser(): ActionParser {
+  return {
+    parse: (data: any) => parseAction(data),
+    validate: (data: any) => validateActionStructure(data),
+  };
 }
 
 function parseSection(data: any): Section {

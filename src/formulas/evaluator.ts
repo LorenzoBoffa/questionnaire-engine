@@ -117,6 +117,14 @@ class Parser {
     };
   }
 
+  private parseFieldReference(): FieldReferenceNode {
+    const fieldId = this.parseIdentifier();
+    return {
+      type: 'fieldReference',
+      fieldId,
+    };
+  }
+
   private parseFunctionCall(functionName: string): FunctionCallNode {
     this.advance();
     const args: ExpressionNode[] = [];

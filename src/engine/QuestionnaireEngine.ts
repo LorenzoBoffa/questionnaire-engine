@@ -1,9 +1,10 @@
 import type { QuestionnaireEngine } from './types';
-import type { Questionnaire, Section } from '../types/questionnaire';
+import type { Questionnaire, Section, FormulaResult } from '../types/questionnaire';
 import type { Question } from '../types/questions';
 import type { AnswerValue, AnswerStore } from '../types/answers';
 import type { ValidationResult, ValidationError } from '../types/validation';
 import type { Progress, EngineState, StateManager } from '../state/types';
+import type { FormulaEngine } from '../formulas/types';
 import type { ActionEngine } from '../actions/types';
 import type { BaseQuestion } from '../questions/base';
 import type { RawAnswer, SubmitResult, ScoringConfig, ScoreResult } from '../types/scoring';
@@ -13,7 +14,7 @@ import { createFormulaEngine } from '../formulas';
 import { validateAll } from '../validation';
 import { createActionEngine, defaultActionRegistry } from '../actions';
 import { createStateManager } from '../state';
-import { createQuestion, setQuestionVisible } from '../questions';
+import { createQuestion, setQuestionVisible, isQuestionVisible } from '../questions';
 import { createJSONLoader } from '../utils/json-loader';
 import { createScoringEngine } from '../scoring';
 

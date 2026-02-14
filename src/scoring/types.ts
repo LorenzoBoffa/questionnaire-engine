@@ -1,5 +1,5 @@
 import type { AnswerStore } from '../types/answers';
-import type { ScoreResult, ScoringConfig } from '../types/scoring';
+import type { ScoreFormula, ScoreResult, ScoringConfig } from '../types/scoring';
 import type { FormulaEngine } from '../formulas/types';
 
 export interface ScoringEngine {

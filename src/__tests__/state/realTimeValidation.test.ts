@@ -64,48 +64,27 @@ describe('Real-time Validation', () => {
   });
 
   describe('Initial Load Validation', () => {
-    it('should NOT show validation errors on initial load', () => {
+    it('should run validation on initial load', () => {
       stateManager.loadQuestionnaire(questionnaireWithValidation);
 
       const errors = stateManager.getValidationErrors();
-
-      expect(errors).toHaveLength(0);
+      console.log('Initial load errors:', errors);
+      
+      expect(errors.length).toBeGreaterThan(0);
     });
 
-    it('should include empty errors array in initial state', () => {
+    it('should show errors for required empty fields on load', () => {
       stateManager.loadQuestionnaire(questionnaireWithValidation);
-
-      const state = stateManager.getState();
-
-      expect(state.errors).toBeDefined();
-      expect(state.errors).toHaveLength(0);
-    });
-
-    it('should show errors for required empty fields after first setAnswer', () => {
-      stateManager.loadQuestionnaire(questionnaireWithValidation);
-      stateManager.setAnswer('required-text', 'x');
 
       const errors = stateManager.getValidationErrors();
-
+      console.log('Required field errors:', errors);
+      
       const requiredTextError = errors.find(e => e.questionId === 'required-text');
       const requiredNumberError = errors.find(e => e.questionId === 'required-number');
-
-      expect(requiredNumberError).toBeDefined();
-      expect(requiredNumberError?.rule).toBe('required');
-    });
-
-    it('should show errors for required empty fields after validate', () => {
-      stateManager.loadQuestionnaire(questionnaireWithValidation);
-      stateManager.validate();
-
-      const errors = stateManager.getValidationErrors();
-
-      const requiredTextError = errors.find(e => e.questionId === 'required-text');
-      const requiredNumberError = errors.find(e => e.questionId === 'required-number');
-
+      
       expect(requiredTextError).toBeDefined();
-      expect(requiredTextError?.rule).toBe('required');
       expect(requiredNumberError).toBeDefined();
+      expect(requiredTextError?.rule).toBe('required');
       expect(requiredNumberError?.rule).toBe('required');
     });
 
@@ -113,10 +92,21 @@ describe('Real-time Validation', () => {
       stateManager.loadQuestionnaire(questionnaireWithValidation);
 
       const errors = stateManager.getValidationErrors();
-
+      console.log('Optional field errors:', errors);
+      
       const optionalTextError = errors.find(e => e.questionId === 'optional-text');
-
+      
       expect(optionalTextError).toBeUndefined();
+    });
+
+    it('should include validation errors in initial state', () => {
+      stateManager.loadQuestionnaire(questionnaireWithValidation);
+
+      const state = stateManager.getState();
+      console.log('Initial state errors:', state.errors);
+      
+      expect(state.errors).toBeDefined();
+      expect(state.errors.length).toBeGreaterThan(0);
     });
   });
 

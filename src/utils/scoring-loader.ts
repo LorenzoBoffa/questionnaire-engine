@@ -1,6 +1,6 @@
 import type { ScoringConfig, ScoreFormula } from '../types/scoring';
 import type { ValidationResult } from './json-loader';
-import { InvalidJSONError, InvalidStructureError, InvalidTypeError } from './json-loader';
+import { InvalidJSONError, InvalidStructureError, MissingFieldError, InvalidTypeError } from './json-loader';
 
 export interface ScoringConfigLoader {
   loadFromString(jsonString: string): ScoringConfig;
