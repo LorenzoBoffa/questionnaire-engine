@@ -205,6 +205,7 @@ function isValidValidationRuleType(type: string): type is ValidationRuleType {
     type === 'max' ||
     type === 'minLength' ||
     type === 'maxLength' ||
+    type === 'email' ||
     type === 'minSelections' ||
     type === 'maxSelections' ||
     type === 'allowedExtensions' ||
@@ -473,6 +474,11 @@ function parseValidationRules(data: any): ValidationRule[] {
             rules.push({
               type: rule.type,
               value: rule.value,
+              message: rule.message,
+            });
+          } else if (rule.type === 'email') {
+            rules.push({
+              type: 'email',
               message: rule.message,
             });
           } else if (rule.type === 'minSelections' || rule.type === 'maxSelections') {

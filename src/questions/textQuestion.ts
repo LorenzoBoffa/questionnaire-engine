@@ -71,6 +71,18 @@ export function validateTextQuestion(
     });
   }
 
+  const emailRule = question.validation?.find(r => r.type === 'email');
+  if (emailRule && stringValue !== '') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(stringValue)) {
+      errors.push({
+        questionId: question.id,
+        rule: 'email',
+        message: emailRule?.message || 'Enter a valid email',
+      });
+    }
+  }
+
   return {
     isValid: errors.length === 0,
     errors,

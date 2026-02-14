@@ -158,6 +158,83 @@ describe('TextQuestion', () => {
 
       expect(result.errors[0].message).toBe('Custom required message');
     });
+
+    describe('email validation', () => {
+      it('should pass when value is a valid email', () => {
+        const question = createTestTextQuestion({
+          id: 'q1',
+          validation: [{ type: 'email' }],
+        });
+        const result = validateTextQuestion('user@example.com', question);
+
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+      });
+
+      it('should fail when value is not an email', () => {
+        const question = createTestTextQuestion({
+          id: 'q1',
+          validation: [{ type: 'email' }],
+        });
+        const result = validateTextQuestion('not-an-email', question);
+
+        expect(result.isValid).toBe(false);
+        expect(result.errors).toHaveLength(1);
+        expect(result.errors[0].rule).toBe('email');
+        expect(result.errors[0].questionId).toBe('q1');
+      });
+
+      it('should fail for invalid email formats', () => {
+        const question = createTestTextQuestion({
+          id: 'q1',
+          validation: [{ type: 'email' }],
+        });
+        expect(validateTextQuestion('@nodomain.com', question).isValid).toBe(false);
+        expect(validateTextQuestion('@nodomain.com', question).errors[0].rule).toBe('email');
+        expect(validateTextQuestion('missing-at.com', question).isValid).toBe(false);
+        expect(validateTextQuestion('missing-at.com', question).errors[0].rule).toBe('email');
+        expect(validateTextQuestion('a@b', question).isValid).toBe(false);
+        expect(validateTextQuestion('a@b', question).errors[0].rule).toBe('email');
+      });
+
+      it('should skip email check when value is empty', () => {
+        const question = createTestTextQuestion({
+          id: 'q1',
+          required: false,
+          validation: [{ type: 'email' }],
+        });
+        expect(validateTextQuestion(null, question).isValid).toBe(true);
+        expect(validateTextQuestion('', question).isValid).toBe(true);
+      });
+
+      it('should use custom message for email rule', () => {
+        const question = createTestTextQuestion({
+          id: 'q1',
+          validation: [{ type: 'email', message: 'Enter a valid email' }],
+        });
+        const result = validateTextQuestion('invalid', question);
+
+        expect(result.isValid).toBe(false);
+        expect(result.errors[0].message).toBe('Enter a valid email');
+      });
+
+      it('should validate email together with other rules', () => {
+        const question = createTestTextQuestion({
+          id: 'q1',
+          validation: [
+            { type: 'minLength', value: 5 },
+            { type: 'email' },
+          ],
+        });
+        const validResult = validateTextQuestion('user@example.com', question);
+        expect(validResult.isValid).toBe(true);
+        expect(validResult.errors).toHaveLength(0);
+
+        const invalidResult = validateTextQuestion('bad', question);
+        expect(invalidResult.isValid).toBe(false);
+        expect(invalidResult.errors.some(e => e.rule === 'email')).toBe(true);
+      });
+    });
   });
 
   describe('getTextQuestionDefaultValue', () => {

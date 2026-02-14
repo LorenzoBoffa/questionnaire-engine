@@ -4,6 +4,7 @@ export type ValidationRuleType =
   | 'max'
   | 'minLength'
   | 'maxLength'
+  | 'email'
   | 'minSelections'
   | 'maxSelections'
   | 'allowedExtensions'
