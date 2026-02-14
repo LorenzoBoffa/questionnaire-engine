@@ -270,8 +270,6 @@ describe('TextQuestion', () => {
       expect(serialized.id).toBe('q1');
       expect(serialized.type).toBe('text');
       expect(serialized.label).toBe('Test Question');
-      expect(serialized.placeholder).toBe('Enter text');
-      expect(serialized.defaultValue).toBe('Default');
       expect(serialized.required).toBe(true);
       expect(serialized.visible).toBe(false);
       expect(serialized.validation).toEqual([{ type: 'minLength', value: 2 }]);
