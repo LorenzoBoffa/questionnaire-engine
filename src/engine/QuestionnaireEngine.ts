@@ -208,6 +208,11 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
     return stateManager!.validate();
   }
 
+  function validateSection(sectionId: string): ValidationResult {
+    ensureInitialized();
+    return stateManager!.validateSection(sectionId);
+  }
+
   function getValidationErrors(): ValidationError[] {
     ensureInitialized();
     return stateManager!.getValidationErrors();
@@ -374,6 +379,7 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
     getQuestion,
     getSection,
     getVisibleQuestionsForSection,
+    validateSection,
     isQuestionVisible,
     hasAnswer,
     submit,

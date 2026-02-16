@@ -175,6 +175,11 @@ describe('StateManager', () => {
       stateManager.loadQuestionnaire(simpleQuestionnaire);
     });
 
+    it('should return empty array on load', () => {
+      const errors = stateManager.getValidationErrors();
+      expect(errors).toHaveLength(0);
+    });
+
     it('should return validation errors', () => {
       stateManager.setAnswer('q1', '');
       stateManager.validate();
@@ -191,6 +196,42 @@ describe('StateManager', () => {
 
       const errors = stateManager.getValidationErrors();
       expect(errors).toHaveLength(0);
+    });
+  });
+
+  describe('validateSection', () => {
+    beforeEach(() => {
+      stateManager.loadQuestionnaire(simpleQuestionnaire);
+    });
+
+    it('should return invalid when section has required empty fields', () => {
+      const result = stateManager.validateSection('section-1');
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.questionId === 'q1')).toBe(true);
+    });
+
+    it('should merge section errors into state', () => {
+      stateManager.validateSection('section-1');
+
+      const errors = stateManager.getValidationErrors();
+      expect(errors.length).toBeGreaterThan(0);
+    });
+
+    it('should return valid when section fields are filled', () => {
+      stateManager.setAnswer('q1', 'test');
+      stateManager.setAnswer('q3', 'Option A');
+      const result = stateManager.validateSection('section-1');
+
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should return empty errors for unknown section', () => {
+      const result = stateManager.validateSection('unknown-section');
+
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
     });
   });
 

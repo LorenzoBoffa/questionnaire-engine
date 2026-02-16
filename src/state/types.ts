@@ -41,6 +41,7 @@ export interface StateManager {
   getCurrentQuestions(): Question[];
   getProgress(): Progress;
   validate(): ValidationResult;
+  validateSection(sectionId: string): ValidationResult;
   getValidationErrors(): ValidationError[];
   reset(): void;
   subscribe(callback: StateChangeCallback): () => void;

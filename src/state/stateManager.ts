@@ -40,7 +40,7 @@ export function createStateManager(
     }
 
     answerStore.clearAll();
-    validationResult = null;
+    validationResult = { isValid: true, errors: [] };
     formulaResults = [];
 
     const actionEngine = createActionEngine(
@@ -67,11 +67,32 @@ export function createStateManager(
       actionEngine.executeAll(allAnswers, formulaResultsMap);
     }
 
-    const questions = getCurrentQuestions();
-    const answers = answerStore.getAllAnswers();
-    validationResult = validationEngine.validateAll(questions, answers);
-
     notifySubscribers();
+  }
+
+  function getVisibleQuestionsForSection(sectionId: string): Question[] {
+    if (!questionnaire) return [];
+    const section = questionnaire.sections.find(s => s.id === sectionId);
+    if (!section) return [];
+    const sectionQuestionIds = new Set(section.questions.map(q => q.id));
+    const visibleQuestions = getCurrentQuestions();
+    return visibleQuestions.filter(q => sectionQuestionIds.has(q.id));
+  }
+
+  function validateSection(sectionId: string): ValidationResult {
+    const questions = getVisibleQuestionsForSection(sectionId);
+    const answers = answerStore.getAllAnswers();
+    const sectionResult = validationEngine.validateAll(questions, answers);
+    const sectionQuestionIds = new Set(questions.map(q => q.id));
+    const current = validationResult ?? { isValid: true, errors: [] };
+    const otherErrors = current.errors.filter(e => !sectionQuestionIds.has(e.questionId));
+    const allErrors = [...otherErrors, ...sectionResult.errors];
+    validationResult = {
+      isValid: allErrors.length === 0,
+      errors: allErrors,
+    };
+    notifySubscribers();
+    return sectionResult;
   }
 
   function setAnswer(questionId: string, value: AnswerValue): void {
@@ -266,6 +287,7 @@ export function createStateManager(
     getCurrentQuestions,
     getProgress,
     validate,
+    validateSection,
     getValidationErrors,
     reset,
     subscribe,

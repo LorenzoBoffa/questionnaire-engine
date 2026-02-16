@@ -168,6 +168,11 @@ describe('QuestionnaireEngine', () => {
       engine.load(simpleQuestionnaire);
     });
 
+    it('should return empty array on load', () => {
+      const errors = engine.getValidationErrors();
+      expect(errors).toHaveLength(0);
+    });
+
     it('should get validation errors', () => {
       engine.setAnswer('q1', '');
       engine.validate();
@@ -184,6 +189,42 @@ describe('QuestionnaireEngine', () => {
 
       const errors = engine.getValidationErrors();
       expect(errors).toHaveLength(0);
+    });
+  });
+
+  describe('validateSection', () => {
+    beforeEach(() => {
+      engine.load(simpleQuestionnaire);
+    });
+
+    it('should return invalid when section has required empty fields', () => {
+      const result = engine.validateSection('section-1');
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.questionId === 'q1')).toBe(true);
+    });
+
+    it('should merge section errors into state', () => {
+      engine.validateSection('section-1');
+
+      const errors = engine.getValidationErrors();
+      expect(errors.length).toBeGreaterThan(0);
+    });
+
+    it('should return valid when section fields are filled', () => {
+      engine.setAnswer('q1', 'test');
+      engine.setAnswer('q3', 'Option A');
+      const result = engine.validateSection('section-1');
+
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should return empty errors for unknown section', () => {
+      const result = engine.validateSection('unknown-section');
+
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
     });
   });
 

@@ -592,7 +592,7 @@ describe('StateManager - Edge Cases', () => {
 
       stateManager.reset();
       errors = stateManager.getValidationErrors();
-      expect(errors.length).toBe(2);
+      expect(errors.length).toBe(0);
     });
   });
 

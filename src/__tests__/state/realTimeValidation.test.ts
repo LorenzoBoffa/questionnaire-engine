@@ -64,49 +64,47 @@ describe('Real-time Validation', () => {
   });
 
   describe('Initial Load Validation', () => {
-    it('should run validation on initial load', () => {
+    it('should NOT run validation on initial load', () => {
       stateManager.loadQuestionnaire(questionnaireWithValidation);
 
       const errors = stateManager.getValidationErrors();
-      console.log('Initial load errors:', errors);
-      
-      expect(errors.length).toBeGreaterThan(0);
+
+      expect(errors.length).toBe(0);
     });
 
-    it('should show errors for required empty fields on load', () => {
+    it('should have no errors in initial state', () => {
       stateManager.loadQuestionnaire(questionnaireWithValidation);
 
-      const errors = stateManager.getValidationErrors();
-      console.log('Required field errors:', errors);
-      
-      const requiredTextError = errors.find(e => e.questionId === 'required-text');
-      const requiredNumberError = errors.find(e => e.questionId === 'required-number');
-      
+      const state = stateManager.getState();
+
+      expect(state.errors).toBeDefined();
+      expect(state.errors.length).toBe(0);
+    });
+
+    it('should show section errors when validateSection is called', () => {
+      stateManager.loadQuestionnaire(questionnaireWithValidation);
+
+      const result = stateManager.validateSection('section1');
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      const requiredTextError = result.errors.find(e => e.questionId === 'required-text');
+      const requiredNumberError = result.errors.find(e => e.questionId === 'required-number');
       expect(requiredTextError).toBeDefined();
       expect(requiredNumberError).toBeDefined();
       expect(requiredTextError?.rule).toBe('required');
       expect(requiredNumberError?.rule).toBe('required');
     });
 
-    it('should NOT show errors for optional empty fields on load', () => {
+    it('should merge section validation errors into state', () => {
       stateManager.loadQuestionnaire(questionnaireWithValidation);
+      stateManager.validateSection('section1');
 
       const errors = stateManager.getValidationErrors();
-      console.log('Optional field errors:', errors);
-      
+
+      expect(errors.length).toBeGreaterThan(0);
       const optionalTextError = errors.find(e => e.questionId === 'optional-text');
-      
       expect(optionalTextError).toBeUndefined();
-    });
-
-    it('should include validation errors in initial state', () => {
-      stateManager.loadQuestionnaire(questionnaireWithValidation);
-
-      const state = stateManager.getState();
-      console.log('Initial state errors:', state.errors);
-      
-      expect(state.errors).toBeDefined();
-      expect(state.errors.length).toBeGreaterThan(0);
     });
   });
 

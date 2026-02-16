@@ -413,6 +413,74 @@ select.question-input option {
   border-radius: 4px;
 }
 
+.section-steps {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.section-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: #666;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.section-step.active {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.section-step.done {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.section-nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-back,
+.section-next {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #e0e0e0;
+  background-color: #fff;
+}
+
+.section-back:hover:not(:disabled),
+.section-next:hover {
+  background-color: #f5f5f5;
+}
+
+.section-back:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.section-next {
+  background-color: #2196f3;
+  color: #fff;
+  border-color: #2196f3;
+}
+
+.section-next:hover {
+  background-color: #1976d2;
+}
+
 .submit-section {
   background-color: #fff;
   padding: 2rem;

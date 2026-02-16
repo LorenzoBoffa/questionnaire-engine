@@ -13,6 +13,7 @@ export interface QuestionnaireEngine {
   getAnswer(questionId: string): AnswerValue | undefined;
   getAllAnswers(): AnswerStore;
   validate(): ValidationResult;
+  validateSection(sectionId: string): ValidationResult;
   getValidationErrors(): ValidationError[];
   getProgress(): Progress;
   getQuestionnaire(): Questionnaire | null;
