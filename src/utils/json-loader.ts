@@ -1,6 +1,7 @@
 import type {
   Questionnaire,
   Section,
+  SectionContentItem,
   Question,
   QuestionType,
   MultipleChoiceOption,
@@ -217,6 +218,25 @@ function isValidValidationRuleType(type: string): type is ValidationRuleType {
   );
 }
 
+function isSubtitleItem(data: any): boolean {
+  return typeof data === 'object' && data !== null && data.type === 'subtitle';
+}
+
+function validateSubtitleItem(data: any, path: string): ValidationResult {
+  const errors: string[] = [];
+  if (typeof data !== 'object' || data === null) {
+    errors.push(formatValidationError(path, 'Subtitle item must be an object'));
+    return { isValid: false, errors };
+  }
+  if (data.type !== 'subtitle') {
+    errors.push(formatValidationError(path, "Subtitle item must have type 'subtitle'"));
+  }
+  if (typeof data.text !== 'string') {
+    errors.push(formatValidationError(path, 'Subtitle item must have string property text'));
+  }
+  return { isValid: errors.length === 0, errors };
+}
+
 function validateQuestionStructure(data: any, path: string): ValidationResult {
   const errors: string[] = [];
 
@@ -305,25 +325,50 @@ function validateSectionStructure(data: any, index: number): ValidationResult {
   const titleResult = validateRequiredField(data, 'title', path);
   if (!titleResult.isValid) errors.push(...titleResult.errors);
 
-  const questionsResult = validateRequiredField(data, 'questions', path);
-  if (!questionsResult.isValid) {
-    errors.push(...questionsResult.errors);
-  } else {
-    const questionsTypeResult = validateFieldType(data, 'questions', 'array', path);
-    if (!questionsTypeResult.isValid) {
-      errors.push(...questionsTypeResult.errors);
+  if (data.content !== undefined && Array.isArray(data.content)) {
+    if (data.content.length === 0) {
+      errors.push(formatValidationError(`${path}.content`, 'content array must be non-empty'));
     } else {
-      const questions = data.questions;
-      if (!Array.isArray(questions) || questions.length === 0) {
-        errors.push(formatValidationError(path, 'questions array must be non-empty'));
-      } else {
-        questions.forEach((question: any, qIndex: number) => {
-          const questionPath = `${path}.questions[${qIndex}]`;
-          const questionResult = validateQuestionStructure(question, questionPath);
+      let questionCount = 0;
+      data.content.forEach((item: any, cIndex: number) => {
+        const itemPath = `${path}.content[${cIndex}]`;
+        if (isSubtitleItem(item)) {
+          const subResult = validateSubtitleItem(item, itemPath);
+          if (!subResult.isValid) errors.push(...subResult.errors);
+        } else {
+          const questionResult = validateQuestionStructure(item, itemPath);
           if (!questionResult.isValid) {
             errors.push(...questionResult.errors);
+          } else {
+            questionCount++;
           }
-        });
+        }
+      });
+      if (questionCount === 0) {
+        errors.push(formatValidationError(`${path}.content`, 'content must contain at least one question'));
+      }
+    }
+  } else {
+    const questionsResult = validateRequiredField(data, 'questions', path);
+    if (!questionsResult.isValid) {
+      errors.push(...questionsResult.errors);
+    } else {
+      const questionsTypeResult = validateFieldType(data, 'questions', 'array', path);
+      if (!questionsTypeResult.isValid) {
+        errors.push(...questionsTypeResult.errors);
+      } else {
+        const questions = data.questions;
+        if (!Array.isArray(questions) || questions.length === 0) {
+          errors.push(formatValidationError(path, 'questions array must be non-empty'));
+        } else {
+          questions.forEach((question: any, qIndex: number) => {
+            const questionPath = `${path}.questions[${qIndex}]`;
+            const questionResult = validateQuestionStructure(question, questionPath);
+            if (!questionResult.isValid) {
+              errors.push(...questionResult.errors);
+            }
+          });
+        }
       }
     }
   }
@@ -361,13 +406,15 @@ function validateQuestionnaireStructure(data: any): ValidationResult {
           const sectionResult = validateSectionStructure(section, index);
           if (!sectionResult.isValid) {
             errors.push(...sectionResult.errors);
-          } else if (Array.isArray(section.questions)) {
-            section.questions.forEach((question: any, qIndex: number) => {
-              if (question && typeof question === 'object' && question.id) {
-                if (questionIds.has(question.id)) {
-                  errors.push(formatValidationError(`sections[${index}].questions[${qIndex}]`, `Duplicate question ID found: ${question.id}`));
+          } else {
+            const itemsToCheck = Array.isArray(section.content) ? section.content : (Array.isArray(section.questions) ? section.questions : []);
+            itemsToCheck.forEach((item: any, qIndex: number) => {
+              if (item && typeof item === 'object' && item.type !== 'subtitle' && item.id) {
+                const itemPath = Array.isArray(section.content) ? `sections[${index}].content[${qIndex}]` : `sections[${index}].questions[${qIndex}]`;
+                if (questionIds.has(item.id)) {
+                  errors.push(formatValidationError(itemPath, `Duplicate question ID found: ${item.id}`));
                 } else {
-                  questionIds.add(question.id);
+                  questionIds.add(item.id);
                 }
               }
             });
@@ -899,8 +946,36 @@ function createActionParser(): ActionParser {
 function parseSection(data: any): Section {
   const id = convertToString(data.id, 'section.id');
   const title = convertToString(data.title, 'section.title');
-  const questionsData = convertToArray(data.questions, 'section.questions');
 
+  if (data.content !== undefined && Array.isArray(data.content)) {
+    const content: SectionContentItem[] = [];
+    const questions: Question[] = [];
+    const contentData = data.content;
+    for (let i = 0; i < contentData.length; i++) {
+      const item = contentData[i];
+      if (isSubtitleItem(item)) {
+        content.push({
+          type: 'subtitle',
+          id: typeof item.id === 'string' ? item.id : undefined,
+          text: convertToString(item.text, `section.content[${i}].text`),
+        });
+      } else {
+        try {
+          const q = parseQuestion(item);
+          questions.push(q);
+          content.push(q);
+        } catch (error) {
+          if (error instanceof Error) {
+            throw new InvalidStructureError(`Error parsing question at index ${i} in section ${id} content: ${error.message}`);
+          }
+          throw error;
+        }
+      }
+    }
+    return { id, title, questions, content };
+  }
+
+  const questionsData = convertToArray(data.questions, 'section.questions');
   const questions = questionsData.map((qData: any, index: number) => {
     try {
       return parseQuestion(qData);

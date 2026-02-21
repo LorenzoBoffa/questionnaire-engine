@@ -26,6 +26,32 @@ Sections group related questions together (can be used for pagination for exampl
 }
 ```
 
+### Optional: content with subtitles
+
+You can use an optional `content` array instead of (or in addition to) `questions` to interleave **subtitle** blocks between questions. Each element of `content` is either a question object or a subtitle object. When `content` is present, the loader derives the section’s question list from it, so you can omit `questions`.
+
+Subtitle object:
+
+- `type` (string, required): Must be `"subtitle"`.
+- `text` (string, required): The subtitle text shown in the UI.
+- `id` (string, optional): Optional identifier for the subtitle.
+
+Example section with a subtitle between questions:
+
+```json
+{
+  "id": "section-1",
+  "title": "Section Title",
+  "content": [
+    { "id": "q1", "type": "text", "label": "First question" },
+    { "type": "subtitle", "text": "Part B" },
+    { "id": "q2", "type": "number", "label": "Second question" }
+  ]
+}
+```
+
+When loaded, the section has both `questions` (the list of questions in order) and `content` (questions and subtitle items in order). The UI can render subtitles between questions. Sections that only use `questions` are unchanged.
+
 ## Questions
 
 ### Common Properties

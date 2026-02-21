@@ -166,6 +166,13 @@ body {
   padding-bottom: 0.5rem;
 }
 
+.section-subtitle {
+  font-size: 1.15rem;
+  margin: 1.25rem 0 0.75rem;
+  color: #34495e;
+  font-weight: 600;
+}
+
 .questions {
   display: flex;
   flex-direction: column;

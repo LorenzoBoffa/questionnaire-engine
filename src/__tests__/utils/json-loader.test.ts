@@ -571,4 +571,147 @@ describe('JSON Loader', () => {
       expect(questionnaire.actions![0].target).toBe('q2');
     });
   });
+
+  describe('Section content and subtitles', () => {
+    it('should not add content when section has only questions (retrocompat)', () => {
+      const loader = createJSONLoader();
+      const questionnaire = loader.loadFromObject(simpleQuestionnaire);
+
+      expect(questionnaire.sections).toHaveLength(1);
+      expect(questionnaire.sections[0].content).toBeUndefined();
+      expect(questionnaire.sections[0].questions).toHaveLength(3);
+      expect(questionnaire.sections[0].questions[0].id).toBe('q1');
+      expect(questionnaire.sections[0].questions[0].type).toBe('text');
+    });
+
+    it('should parse section with content (questions and subtitle items)', () => {
+      const loader = createJSONLoader();
+      const withContent = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            content: [
+              { id: 'q1', type: 'text', label: 'First question' },
+              { type: 'subtitle', text: 'Part B' },
+              { id: 'q2', type: 'number', label: 'Second question' },
+            ],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(withContent);
+
+      expect(questionnaire.sections[0].questions).toHaveLength(2);
+      expect(questionnaire.sections[0].questions[0].id).toBe('q1');
+      expect(questionnaire.sections[0].questions[1].id).toBe('q2');
+      expect(questionnaire.sections[0].content).toHaveLength(3);
+      expect(questionnaire.sections[0].content![0]).toMatchObject({ id: 'q1', type: 'text' });
+      expect(questionnaire.sections[0].content![1]).toEqual({ type: 'subtitle', text: 'Part B' });
+      expect(questionnaire.sections[0].content![2]).toMatchObject({ id: 'q2', type: 'number' });
+    });
+
+    it('should reject content with invalid subtitle (missing text)', () => {
+      const loader = createJSONLoader();
+      const invalid = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            content: [
+              { id: 'q1', type: 'text', label: 'Q1' },
+              { type: 'subtitle' },
+            ],
+          },
+        ],
+      };
+      const result = loader.validateStructure(invalid);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.includes('text') || e.includes('Subtitle'))).toBe(true);
+    });
+
+    it('should reject content with zero questions', () => {
+      const loader = createJSONLoader();
+      const invalid = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            content: [
+              { type: 'subtitle', text: 'Only subtitle' },
+            ],
+          },
+        ],
+      };
+      const result = loader.validateStructure(invalid);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.includes('at least one question'))).toBe(true);
+    });
+
+    it('should reject duplicate question ids when using content', () => {
+      const loader = createJSONLoader();
+      const invalid = {
+        id: 'test',
+        title: 'Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section',
+            content: [
+              { id: 'q1', type: 'text', label: 'Q1' },
+              { type: 'subtitle', text: 'Part B' },
+              { id: 'q1', type: 'number', label: 'Q2' },
+            ],
+          },
+        ],
+      };
+      const result = loader.validateStructure(invalid);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.includes('Duplicate question ID'))).toBe(true);
+    });
+
+    it('should load full questionnaire with mixed sections (questions-only and content)', () => {
+      const loader = createJSONLoader();
+      const mixed = {
+        id: 'mixed',
+        title: 'Mixed',
+        sections: [
+          {
+            id: 'questions-only',
+            title: 'Questions Only',
+            questions: [
+              { id: 'a1', type: 'text', label: 'A1' },
+              { id: 'a2', type: 'number', label: 'A2' },
+            ],
+          },
+          {
+            id: 'with-content',
+            title: 'With Content',
+            content: [
+              { type: 'subtitle', text: 'Intro' },
+              { id: 'b1', type: 'text', label: 'B1' },
+              { id: 'b2', type: 'number', label: 'B2' },
+            ],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(mixed);
+
+      expect(questionnaire.sections).toHaveLength(2);
+      expect(questionnaire.sections[0].content).toBeUndefined();
+      expect(questionnaire.sections[0].questions).toHaveLength(2);
+      expect(questionnaire.sections[0].questions.map(q => q.id)).toEqual(['a1', 'a2']);
+      expect(questionnaire.sections[1].content).toHaveLength(3);
+      expect(questionnaire.sections[1].questions).toHaveLength(2);
+      expect(questionnaire.sections[1].questions.map(q => q.id)).toEqual(['b1', 'b2']);
+    });
+  });
 });

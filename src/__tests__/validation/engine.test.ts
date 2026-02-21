@@ -109,6 +109,84 @@ describe('Validation Engine', () => {
       expect(validateQuestion(question, tooLarge).isValid).toBe(false);
       expect(validateQuestion(question, tooLarge).errors.some(e => e.rule === 'maxSizeBytes')).toBe(true);
     });
+    
+    describe('multiple rules including required (required + min + max)', () => {
+      const question = createNumberQuestion({
+        id: 'potenza-termica',
+        validation: [
+          { type: 'required', message: 'Inserisci la potenza termica nominale' },
+          { type: 'min', value: 0.1 },
+          { type: 'max', value: 2000 },
+        ],
+      });
+
+      it('should fail with required error when value is null', () => {
+        const result = validateQuestion(question, null);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(e => e.rule === 'required')).toBe(true);
+        expect(result.errors.find(e => e.rule === 'required')?.message).toBe('Inserisci la potenza termica nominale');
+      });
+
+      it('should fail with required error when value is undefined', () => {
+        const result = validateQuestion(question, undefined);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(e => e.rule === 'required')).toBe(true);
+      });
+
+      it('should fail with required error when value is empty string', () => {
+        const result = validateQuestion(question, '');
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(e => e.rule === 'required')).toBe(true);
+      });
+
+      it('should fail with min error when value is below min', () => {
+        const result = validateQuestion(question, 0);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(e => e.rule === 'min')).toBe(true);
+      });
+
+      it('should fail with min error when value is just below min', () => {
+        const result = validateQuestion(question, 0.05);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(e => e.rule === 'min')).toBe(true);
+      });
+
+      it('should fail with max error when value is above max', () => {
+        const result = validateQuestion(question, 2500);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(e => e.rule === 'max')).toBe(true);
+      });
+
+      it('should fail with max error when value is just above max', () => {
+        const result = validateQuestion(question, 2000.1);
+        expect(result.isValid).toBe(false);
+        expect(result.errors.some(e => e.rule === 'max')).toBe(true);
+      });
+
+      it('should pass when value is at min boundary', () => {
+        const result = validateQuestion(question, 0.1);
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+      });
+
+      it('should pass when value is at max boundary', () => {
+        const result = validateQuestion(question, 2000);
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+      });
+
+      it('should pass when value is within range', () => {
+        const result = validateQuestion(question, 100);
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+      });
+
+      it('should pass when value is decimal within range', () => {
+        const result = validateQuestion(question, 150.5);
+        expect(result.isValid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+      });
+    });
   });
 
   describe('validateAll', () => {
@@ -180,6 +258,34 @@ describe('Validation Engine', () => {
 
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
+    });
+
+    it('should apply required + min + max together and aggregate errors correctly', () => {
+      const questions = [
+        createNumberQuestion({
+          id: 'potenza',
+          validation: [
+            { type: 'required', message: 'Inserisci la potenza termica nominale' },
+            { type: 'min', value: 0.1 },
+            { type: 'max', value: 2000 },
+          ],
+        }),
+      ];
+      const resultEmpty = validateAll(questions, {});
+      expect(resultEmpty.isValid).toBe(false);
+      expect(resultEmpty.errors.some(e => e.questionId === 'potenza' && e.rule === 'required')).toBe(true);
+
+      const resultBelowMin = validateAll(questions, { potenza: 0 });
+      expect(resultBelowMin.isValid).toBe(false);
+      expect(resultBelowMin.errors.some(e => e.questionId === 'potenza' && e.rule === 'min')).toBe(true);
+
+      const resultAboveMax = validateAll(questions, { potenza: 3000 });
+      expect(resultAboveMax.isValid).toBe(false);
+      expect(resultAboveMax.errors.some(e => e.questionId === 'potenza' && e.rule === 'max')).toBe(true);
+
+      const resultValid = validateAll(questions, { potenza: 500 });
+      expect(resultValid.isValid).toBe(true);
+      expect(resultValid.errors).toHaveLength(0);
     });
   });
 

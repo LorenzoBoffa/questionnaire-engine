@@ -2,6 +2,12 @@
 
 ## Core Components
 
+### Sections
+
+Questionnaires are organized into **sections**. Each section has an `id`, a `title`, and a list of **questions**. Sections are used to group related questions and can drive pagination or step-based UIs.
+
+Optionally, a section can use a **content** array instead of (or derived from) `questions`. Content allows you to interleave **subtitle** blocks between questions. Each content item is either a question object or a subtitle object (`{ "type": "subtitle", "text": "Your subtitle" }`). When `content` is present, the loader derives the section’s question list from it; the engine still operates on the flat question list. See the [JSON Guide](./json-guide.md#optional-content-with-subtitles) for the full schema and examples.
+
 ### Question Types
 - **text**: Single-line text input
 - **number**: Numeric input

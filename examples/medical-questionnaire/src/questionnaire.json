@@ -110,6 +110,17 @@
       ]
     },
     {
+      "id": "subtitles-demo",
+      "title": "Section with subtitles",
+      "content": [
+        { "id": "sub-q1", "type": "text", "label": "First question in this section", "required": false },
+        { "type": "subtitle", "text": "Part B – More details" },
+        { "id": "sub-q2", "type": "number", "label": "A number question", "required": false },
+        { "type": "subtitle", "text": "Part C – Final part" },
+        { "id": "sub-q3", "type": "text", "label": "Last question", "required": false }
+      ]
+    },
+    {
       "id": "actions-test-section",
       "title": "Actions Test Section",
       "questions": [

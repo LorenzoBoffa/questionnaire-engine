@@ -1,6 +1,8 @@
 export type {
   Questionnaire,
   Section,
+  SubtitleItem,
+  SectionContentItem,
   Formula,
   FormulaResult,
 } from './questionnaire';

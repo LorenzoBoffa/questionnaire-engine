@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
-import type { Section } from 'questionnaire-engine';
+import type { Section, SectionContentItem, SubtitleItem } from 'questionnaire-engine';
 import { type QuestionnaireEngine, type EngineState, type ScoreResult, type RawAnswer, type ScoringConfig, type AnswerValue } from 'questionnaire-engine';
 import type { Question } from 'questionnaire-engine';
+
+function isSubtitleItem(item: SectionContentItem): item is SubtitleItem {
+  return typeof item === 'object' && item !== null && 'type' in item && (item as SubtitleItem).type === 'subtitle';
+}
 import QuestionRenderer from './QuestionRenderer';
 import FormulaResults from './FormulaResults';
 import ScoreResults from './ScoreResults';
@@ -171,6 +175,12 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
   }
 
   const sectionQuestions = questionsBySection.get(currentSection.id) ?? [];
+  const sectionItems: SectionContentItem[] = currentSection.content
+    ? currentSection.content.filter(
+        (item) => isSubtitleItem(item) || visibleQuestionIds.has((item as Question).id)
+      )
+    : sectionQuestions;
+
   const isFormulasSection = currentSection.id === 'formulas-test-section';
   const sectionFormulas = isFormulasSection && questionnaire.formulas ? questionnaire.formulas : [];
   const isSectionValidated = validatedSections.has(currentSection.id);
@@ -196,7 +206,15 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
       <div key={currentSection.id} className="section">
         <h2 className="section-title">{currentSection.title}</h2>
         <div className="questions">
-          {sectionQuestions.map((question) => {
+          {sectionItems.map((item, index) => {
+            if (isSubtitleItem(item)) {
+              return (
+                <h3 key={`subtitle-${index}-${item.text.slice(0, 20)}`} className="section-subtitle">
+                  {item.text}
+                </h3>
+              );
+            }
+            const question = item as Question;
             const touchedError = touchedFields.has(question.id) ? (errorMap.get(question.id) || []) : [];
             const sectionError = isSectionValidated ? (sectionErrorMap.get(question.id) || []) : [];
             const questionErrors = [...touchedError, ...sectionError];
