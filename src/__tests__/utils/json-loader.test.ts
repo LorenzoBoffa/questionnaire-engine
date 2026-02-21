@@ -92,6 +92,66 @@ describe('JSON Loader', () => {
     });
   });
 
+  describe('question metadata preservation', () => {
+    const questionnaireWithMetadata = {
+      id: 'meta-test',
+      title: 'Questionnaire with metadata',
+      sections: [
+        {
+          id: 's1',
+          title: 'Section',
+          questions: [
+            {
+              id: 'q1',
+              type: 'text',
+              label: 'Name',
+              metadata: { icon: 'user', helpText: 'Your full name' },
+            },
+            {
+              id: 'q2',
+              type: 'number',
+              label: 'Age',
+              metadata: { unit: 'years' },
+            },
+            {
+              id: 'q3',
+              type: 'multiple-choice',
+              label: 'Option',
+              options: ['A', 'B'],
+            },
+          ],
+        },
+      ],
+    };
+
+    it('should preserve question metadata when loading from string', () => {
+      const loader = createJSONLoader();
+      const json = JSON.stringify(questionnaireWithMetadata);
+      const questionnaire = loader.loadFromString(json);
+
+      const q1 = questionnaire.sections[0].questions.find((q) => q.id === 'q1');
+      const q2 = questionnaire.sections[0].questions.find((q) => q.id === 'q2');
+      const q3 = questionnaire.sections[0].questions.find((q) => q.id === 'q3');
+
+      expect(q1?.metadata).toEqual({ icon: 'user', helpText: 'Your full name' });
+      expect(q2?.metadata).toEqual({ unit: 'years' });
+      expect(q3?.metadata).toBeUndefined();
+    });
+
+    it('should preserve question metadata when loading from object', () => {
+      const loader = createJSONLoader();
+      const questionnaire = loader.loadFromObject(questionnaireWithMetadata);
+
+      const q1 = questionnaire.sections[0].questions.find((q) => q.id === 'q1');
+      const q2 = questionnaire.sections[0].questions.find((q) => q.id === 'q2');
+      const q3 = questionnaire.sections[0].questions.find((q) => q.id === 'q3');
+
+      expect(q1?.metadata).toEqual({ icon: 'user', helpText: 'Your full name' });
+      expect(q2?.metadata).toEqual({ unit: 'years' });
+      expect(q3?.metadata).toBeUndefined();
+    });
+  });
+
   describe('validateStructure', () => {
     it('should validate questionnaire structure', () => {
       const loader = createJSONLoader();

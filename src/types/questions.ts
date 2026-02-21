@@ -11,6 +11,7 @@ export interface BaseQuestion {
   required?: boolean;
   validation?: ValidationRule[];
   visible?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export interface TextQuestion extends BaseQuestion {

@@ -624,6 +624,14 @@ function createValidationRuleParser(): ValidationRuleParser {
   };
 }
 
+function parseMetadata(data: any): Record<string, unknown> | undefined {
+  const m = data.metadata;
+  if (typeof m === 'object' && m !== null && !Array.isArray(m)) {
+    return m as Record<string, unknown>;
+  }
+  return undefined;
+}
+
 function parseTextQuestion(data: any): Question {
   const validation = parseValidationRules(data);
   const question: Question = {
@@ -635,6 +643,7 @@ function parseTextQuestion(data: any): Question {
     placeholder: data.placeholder ? convertToString(data.placeholder, 'placeholder') : undefined,
     defaultValue: data.defaultValue ? convertToString(data.defaultValue, 'defaultValue') : undefined,
     validation: validation.length > 0 ? validation : undefined,
+    ...(parseMetadata(data) && { metadata: data.metadata as Record<string, unknown> }),
   };
   return question;
 }
@@ -652,6 +661,7 @@ function parseNumberQuestion(data: any): Question {
     step: data.step !== undefined ? convertToNumber(data.step, 'step') : undefined,
     defaultValue: data.defaultValue !== undefined ? convertToNumber(data.defaultValue, 'defaultValue') : undefined,
     validation: validation.length > 0 ? validation : undefined,
+    ...(parseMetadata(data) && { metadata: data.metadata as Record<string, unknown> }),
   };
   return question;
 }
@@ -681,6 +691,7 @@ function parseMultipleChoiceQuestion(data: any): Question {
     options: parsedOptions as string[] | MultipleChoiceOption[],
     defaultValue: data.defaultValue ? convertToString(data.defaultValue, 'defaultValue') : undefined,
     validation: validation.length > 0 ? validation : undefined,
+    ...(parseMetadata(data) && { metadata: data.metadata as Record<string, unknown> }),
   };
   return question;
 }
@@ -713,6 +724,7 @@ function parseMultiSelectQuestion(data: any): Question {
     minSelections: data.minSelections !== undefined ? convertToNumber(data.minSelections, 'minSelections') : undefined,
     maxSelections: data.maxSelections !== undefined ? convertToNumber(data.maxSelections, 'maxSelections') : undefined,
     validation: validation.length > 0 ? validation : undefined,
+    ...(parseMetadata(data) && { metadata: data.metadata as Record<string, unknown> }),
   };
   return question;
 }
@@ -734,6 +746,7 @@ function parseFileQuestion(data: any): Question {
     minHeight: data.minHeight !== undefined ? convertToNumber(data.minHeight, 'minHeight') : undefined,
     maxHeight: data.maxHeight !== undefined ? convertToNumber(data.maxHeight, 'maxHeight') : undefined,
     validation: validation.length > 0 ? validation : undefined,
+    ...(parseMetadata(data) && { metadata: data.metadata as Record<string, unknown> }),
   };
   return question;
 }
@@ -830,6 +843,7 @@ function parseTabularQuestion(data: any): Question {
     columns,
     rows,
     validation: validation.length > 0 ? validation : undefined,
+    ...(parseMetadata(data) && { metadata: data.metadata as Record<string, unknown> }),
   };
   return question;
 }
