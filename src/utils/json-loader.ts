@@ -192,7 +192,7 @@ function validateFieldType(data: any, field: string, expectedType: string, path:
 }
 
 function isValidQuestionType(type: string): type is QuestionType {
-  return type === 'text' || type === 'number' || type === 'multiple-choice' || type === 'multi-select' || type === 'file';
+  return type === 'text' || type === 'number' || type === 'multiple-choice' || type === 'multi-select' || type === 'file' || type === 'tabular';
 }
 
 function isValidActionType(type: string): type is ActionType {
@@ -249,7 +249,7 @@ function validateQuestionStructure(data: any, path: string): ValidationResult {
   } else {
     const type = data.type;
     if (!isValidQuestionType(type)) {
-      errors.push(formatTypeError(`${path}.type`, "'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file'", type));
+      errors.push(formatTypeError(`${path}.type`, "'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file' | 'tabular'", type));
     }
   }
 
@@ -309,6 +309,50 @@ function validateQuestionStructure(data: any, path: string): ValidationResult {
     }
     if (data.maxHeight !== undefined && typeof data.maxHeight !== 'number') {
       errors.push(formatTypeError(`${path}.maxHeight`, 'number', data.maxHeight));
+    }
+  }
+
+  if (data.type === 'tabular') {
+    if (!data.columns || !Array.isArray(data.columns) || data.columns.length === 0) {
+      errors.push(formatValidationError(path, 'tabular question must have a non-empty columns array'));
+    } else {
+      const validCellTypes = ['text', 'number', 'multiple-choice', 'multi-select'];
+      data.columns.forEach((col: any, i: number) => {
+        const colPath = `${path}.columns[${i}]`;
+        if (!col || typeof col !== 'object') {
+          errors.push(formatValidationError(colPath, 'column must be an object'));
+          return;
+        }
+        if (!col.id || typeof col.id !== 'string') {
+          errors.push(formatMissingFieldError(colPath, 'id'));
+        }
+        if (!col.label || typeof col.label !== 'string') {
+          errors.push(formatMissingFieldError(colPath, 'label'));
+        }
+        if (!col.type || !validCellTypes.includes(col.type)) {
+          errors.push(formatTypeError(`${colPath}.type`, "'text' | 'number' | 'multiple-choice' | 'multi-select'", col.type));
+        }
+        if ((col.type === 'multiple-choice' || col.type === 'multi-select') && col.options !== undefined) {
+          if (!Array.isArray(col.options)) {
+            errors.push(formatTypeError(`${colPath}.options`, 'array', col.options));
+          }
+        }
+      });
+    }
+
+    if (!data.rows || !Array.isArray(data.rows) || data.rows.length === 0) {
+      errors.push(formatValidationError(path, 'tabular question must have a non-empty rows array'));
+    } else {
+      data.rows.forEach((row: any, i: number) => {
+        const rowPath = `${path}.rows[${i}]`;
+        if (!row || typeof row !== 'object') {
+          errors.push(formatValidationError(rowPath, 'row must be an object'));
+          return;
+        }
+        if (!row.id || typeof row.id !== 'string') {
+          errors.push(formatMissingFieldError(rowPath, 'id'));
+        }
+      });
     }
   }
 
@@ -734,6 +778,70 @@ function createFileQuestionParser(): QuestionParser {
   };
 }
 
+function parseTabularQuestion(data: any): Question {
+  const validation = parseValidationRules(data);
+
+  const columns = Array.isArray(data.columns)
+    ? data.columns.map((col: any, i: number) => {
+        const colValidation = parseValidationRules(col);
+        const parsedOptions = Array.isArray(col.options)
+          ? col.options.map((opt: any, j: number) => {
+              if (typeof opt === 'string') return opt;
+              if (typeof opt === 'object' && opt !== null && opt.value !== undefined) {
+                return {
+                  value: convertToString(opt.value, `columns[${i}].options[${j}].value`),
+                  label: convertToString(opt.label ?? opt.value, `columns[${i}].options[${j}].label`),
+                };
+              }
+              return convertToString(opt, `columns[${i}].options[${j}]`);
+            })
+          : undefined;
+
+        return {
+          id: convertToString(col.id, `columns[${i}].id`),
+          label: convertToString(col.label, `columns[${i}].label`),
+          type: col.type as 'text' | 'number' | 'multiple-choice' | 'multi-select',
+          required: col.required === true,
+          validation: colValidation.length > 0 ? colValidation : undefined,
+          placeholder: col.placeholder ? convertToString(col.placeholder, `columns[${i}].placeholder`) : undefined,
+          min: col.min !== undefined ? convertToNumber(col.min, `columns[${i}].min`) : undefined,
+          max: col.max !== undefined ? convertToNumber(col.max, `columns[${i}].max`) : undefined,
+          step: col.step !== undefined ? convertToNumber(col.step, `columns[${i}].step`) : undefined,
+          options: parsedOptions,
+          minSelections: col.minSelections !== undefined ? convertToNumber(col.minSelections, `columns[${i}].minSelections`) : undefined,
+          maxSelections: col.maxSelections !== undefined ? convertToNumber(col.maxSelections, `columns[${i}].maxSelections`) : undefined,
+        };
+      })
+    : [];
+
+  const rows = Array.isArray(data.rows)
+    ? data.rows.map((row: any, i: number) => ({
+        id: convertToString(row.id, `rows[${i}].id`),
+        label: row.label ? convertToString(row.label, `rows[${i}].label`) : undefined,
+      }))
+    : [];
+
+  const question: Question = {
+    id: convertToString(data.id, 'id'),
+    type: 'tabular',
+    label: convertToString(data.label, 'label'),
+    required: data.required === true,
+    visible: data.visible !== undefined ? data.visible === true : undefined,
+    columns,
+    rows,
+    validation: validation.length > 0 ? validation : undefined,
+  };
+  return question;
+}
+
+function createTabularQuestionParser(): QuestionParser {
+  return {
+    parse: (data: any) => parseTabularQuestion(data),
+    canParse: (type: QuestionType) => type === 'tabular',
+    validate: (data: any) => validateQuestionStructure(data, 'question'),
+  };
+}
+
 const questionParserRegistry = new Map<QuestionType, QuestionParser>();
 
 function registerQuestionParser(type: QuestionType, parser: QuestionParser): void {
@@ -747,7 +855,7 @@ function getQuestionParser(type: QuestionType): QuestionParser | undefined {
 function parseQuestion(data: any): Question {
   const type = convertToString(data.type, 'type');
   if (!isValidQuestionType(type)) {
-    throw new InvalidTypeError(formatTypeError('type', "'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file'", type));
+    throw new InvalidTypeError(formatTypeError('type', "'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file' | 'tabular'", type));
   }
 
   const parser = getQuestionParser(type);
@@ -763,6 +871,7 @@ registerQuestionParser('number', createNumberQuestionParser());
 registerQuestionParser('multiple-choice', createMultipleChoiceQuestionParser());
 registerQuestionParser('multi-select', createMultiSelectQuestionParser());
 registerQuestionParser('file', createFileQuestionParser());
+registerQuestionParser('tabular', createTabularQuestionParser());
 
 function validateFormulaId(id: any): ValidationResult {
   if (id === null || id === undefined || id === '') {

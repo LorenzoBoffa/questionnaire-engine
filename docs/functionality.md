@@ -14,6 +14,7 @@ Optionally, a section can use a **content** array instead of (or derived from) `
 - **multiple-choice**: Single selection from a list of options
 - **multi-select**: Multiple selection from a list of options
 - **file**: File upload (image or document) with optional type/size/dimension constraints
+- **tabular**: Table with configurable columns and rows; each column has one question type (text, number, multiple-choice, multi-select), cells can be optional per column
 
 All questions support an optional **metadata** object (`Record<string, unknown>`) for passing additional info (e.g. icons, help text) to the UI layer.
 

@@ -18,6 +18,10 @@ export type {
   MultiSelectQuestion,
   FileQuestion,
   FileQuestionKind,
+  TabularQuestion,
+  TabularColumn,
+  TabularRow,
+  TabularColumnType,
 } from './questions';
 
 export type {
@@ -43,6 +47,8 @@ export type {
   AnswerValue,
   AnswerStore,
   FileAnswerValue,
+  TabularAnswerValue,
+  TabularCellValue,
 } from './answers';
 
 export type {

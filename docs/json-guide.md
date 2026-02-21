@@ -58,7 +58,7 @@ When loaded, the section has both `questions` (the list of questions in order) a
 
 All questions share these properties:
 - `id` (string, required): Unique identifier
-- `type` (string, required): Question type (`text`, `number`, `multiple-choice`, `multi-select`, `file`)
+- `type` (string, required): Question type (`text`, `number`, `multiple-choice`, `multi-select`, `file`, `tabular`)
 - `label` (string, required): Question text
 - `required` (boolean, optional): Whether the question is required
 - `visible` (boolean, optional): Initial visibility state (default: `true`)
@@ -203,6 +203,56 @@ Properties:
 - `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (number, optional): Pixel bounds; only applied when `fileKind` is `"image"` (use `validation` array preferred)
 
 The UI must read the file, obtain metadata (name, size, type, and for images width/height), and call `setAnswer(questionId, metadata)`. The engine validates only that metadata.
+
+### Tabular Question
+
+A tabular question renders a table with configurable columns and rows. Each column has a single question type (text, number, multiple-choice, or multi-select); each cell in that column uses that type. Rows and columns are defined in the JSON. Cells can be left empty unless the column is required.
+
+Answer value is an object: `Record<rowId, Record<columnId, cellValue>>`. Use `engine.setAnswer(questionId, value)` with that object.
+
+```json
+{
+  "id": "scores",
+  "type": "tabular",
+  "label": "Rate each item (1–5) and add a note",
+  "required": false,
+  "columns": [
+    {
+      "id": "rating",
+      "label": "Rating",
+      "type": "number",
+      "required": true,
+      "min": 1,
+      "max": 5
+    },
+    {
+      "id": "note",
+      "label": "Note",
+      "type": "text",
+      "required": false,
+      "placeholder": "Optional"
+    }
+  ],
+  "rows": [
+    { "id": "item1", "label": "Item 1" },
+    { "id": "item2", "label": "Item 2" }
+  ]
+}
+```
+
+Properties:
+- `columns` (array, required): Non-empty array of column definitions. Each column has:
+  - `id` (string, required): Unique column id
+  - `label` (string, required): Column header
+  - `type` (string, required): Cell type: `text`, `number`, `multiple-choice`, or `multi-select`
+  - `required` (boolean, optional): If true, every cell in this column must have a value; if false or omitted, cells can be left empty
+  - `validation` (array, optional): Validation rules applied to each cell (e.g. `min`, `max`, `minLength`, `maxLength`, `minSelections`, `maxSelections`)
+  - Type-specific options: `placeholder`, `min`, `max`, `step` (number); `options` (multiple-choice / multi-select); `minSelections`, `maxSelections` (multi-select)
+- `rows` (array, required): Non-empty array of row definitions. Each row has:
+  - `id` (string, required): Unique row id
+  - `label` (string, optional): Row header; if omitted, the row `id` is used
+
+Validation errors for invalid cells use synthetic question ids: `questionId.rowId.columnId`, so the UI can show per-cell errors.
 
 ## Validation Rules
 

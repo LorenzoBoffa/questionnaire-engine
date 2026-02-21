@@ -24,6 +24,10 @@ export {
   serializeMultipleChoiceQuestion,
   getMultipleChoiceOptions,
   isValidMultipleChoiceOption,
+  createTabularQuestion,
+  validateTabularQuestion,
+  getTabularQuestionDefaultValue,
+  serializeTabularQuestion,
 } from './questions';
 
 export type { BaseQuestion } from './questions';

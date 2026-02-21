@@ -308,6 +308,47 @@
       ]
     },
     {
+      "id": "tabular-test-section",
+      "title": "Tabular Question",
+      "questions": [
+        {
+          "id": "scores-table",
+          "type": "tabular",
+          "label": "Rate each item (1–5), add an optional note, and choose a category",
+          "required": false,
+          "columns": [
+            {
+              "id": "rating",
+              "label": "Rating",
+              "type": "number",
+              "required": true,
+              "min": 1,
+              "max": 5
+            },
+            {
+              "id": "note",
+              "label": "Note",
+              "type": "text",
+              "required": false,
+              "placeholder": "Optional"
+            },
+            {
+              "id": "category",
+              "label": "Category",
+              "type": "multiple-choice",
+              "required": false,
+              "options": ["Low", "Medium", "High"]
+            }
+          ],
+          "rows": [
+            { "id": "item1", "label": "Item 1" },
+            { "id": "item2", "label": "Item 2" },
+            { "id": "item3", "label": "Item 3" }
+          ]
+        }
+      ]
+    },
+    {
       "id": "formulas-test-section",
       "title": "Formulas Test Section",
       "questions": [

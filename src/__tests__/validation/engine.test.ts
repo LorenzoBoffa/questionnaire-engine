@@ -6,6 +6,7 @@ import {
   createMultipleChoiceQuestion,
   createMultiSelectQuestion,
   createFileQuestion,
+  createTabularQuestion,
 } from '../fixtures/helpers';
 import type { AnswerStore } from '../../types/answers';
 import type { ValidationResult } from '../../types/validation';
@@ -312,6 +313,79 @@ describe('Validation Engine', () => {
       const errors = getErrorsForQuestion('q1', result);
 
       expect(errors).toHaveLength(0);
+    });
+  });
+
+  describe('tabular question delegation', () => {
+    const tabularQ = createTabularQuestion({
+      id: 'tbl',
+      columns: [
+        { id: 'weight', label: 'Weight', type: 'number', required: true, min: 0, max: 300 },
+        { id: 'note', label: 'Note', type: 'text' },
+      ],
+      rows: [{ id: 'r1', label: 'Row 1' }, { id: 'r2', label: 'Row 2' }],
+    });
+
+    it('returns valid when all required cells are filled', () => {
+      const result = validateQuestion(tabularQ, { r1: { weight: 70 }, r2: { weight: 80 } });
+      expect(result.isValid).toBe(true);
+    });
+
+    it('returns invalid when required cell is missing', () => {
+      const result = validateQuestion(tabularQ, { r1: { note: 'ok' }, r2: { weight: 80 } });
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.questionId === 'tbl.r1.weight')).toBe(true);
+    });
+
+    it('cell errors use synthetic questionId pattern id.rowId.colId', () => {
+      const result = validateQuestion(tabularQ, {});
+      const ids = result.errors.map(e => e.questionId);
+      expect(ids).toContain('tbl.r1.weight');
+      expect(ids).toContain('tbl.r2.weight');
+    });
+
+    it('does not apply table-level rules to cells (bypasses validateValue)', () => {
+      // tabularQ has no table-level validation rules, cells delegate independently
+      const result = validateQuestion(tabularQ, null);
+      // null on an optional tabular question → valid
+      expect(result.isValid).toBe(true);
+    });
+
+    it('validates number column constraints', () => {
+      const result = validateQuestion(tabularQ, { r1: { weight: 500 }, r2: { weight: 70 } });
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.questionId === 'tbl.r1.weight' && e.rule === 'max')).toBe(true);
+    });
+  });
+
+  describe('validateAll with tabular questions', () => {
+    it('aggregates cell errors alongside regular question errors', () => {
+      const questions = [
+        createTextQuestion({ id: 'name', required: true }),
+        createTabularQuestion({
+          id: 'tbl',
+          columns: [{ id: 'val', label: 'Val', type: 'number', required: true }],
+          rows: [{ id: 'r1' }],
+        }),
+      ];
+      const answers: AnswerStore = { name: null, tbl: {} };
+      const result = validateAll(questions, answers);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.questionId === 'name')).toBe(true);
+      expect(result.errors.some(e => e.questionId === 'tbl.r1.val')).toBe(true);
+    });
+
+    it('passes when all tabular cells are valid', () => {
+      const questions = [
+        createTabularQuestion({
+          id: 'tbl',
+          columns: [{ id: 'val', label: 'Val', type: 'number', required: true }],
+          rows: [{ id: 'r1' }],
+        }),
+      ];
+      const answers: AnswerStore = { tbl: { r1: { val: 42 } } };
+      const result = validateAll(questions, answers);
+      expect(result.isValid).toBe(true);
     });
   });
 

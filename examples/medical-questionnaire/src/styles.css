@@ -315,6 +315,64 @@ select.question-input option {
   color: #333;
 }
 
+.tabular-wrapper {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+
+.tabular-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.tabular-table th,
+.tabular-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: top;
+}
+
+.tabular-row-header,
+.tabular-col-header {
+  font-weight: 600;
+  color: #333;
+  background-color: #fafafa;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tabular-row-label {
+  font-weight: 500;
+  white-space: nowrap;
+  color: #555;
+}
+
+.tabular-cell .cell-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.tabular-cell .cell-input:focus {
+  outline: none;
+  border-color: #2196f3;
+}
+
+.tabular-cell .cell-input.error {
+  border-color: #d32f2f;
+}
+
+.tabular-cell .cell-error {
+  color: #d32f2f;
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+}
+
 .test-validation-section {
   margin-bottom: 2rem;
 }

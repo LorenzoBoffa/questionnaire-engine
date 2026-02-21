@@ -1,6 +1,8 @@
 import type { ValidationRule } from './validation';
 
-export type QuestionType = 'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file';
+export type QuestionType = 'text' | 'number' | 'multiple-choice' | 'multi-select' | 'file' | 'tabular';
+
+export type TabularColumnType = 'text' | 'number' | 'multiple-choice' | 'multi-select';
 
 export interface BaseQuestion {
   id: string;
@@ -57,4 +59,34 @@ export interface FileQuestion extends BaseQuestion {
   maxHeight?: number;
 }
 
-export type Question = TextQuestion | NumberQuestion | MultipleChoiceQuestion | MultiSelectQuestion | FileQuestion;
+export interface TabularColumn {
+  id: string;
+  label: string;
+  type: TabularColumnType;
+  required?: boolean;
+  validation?: ValidationRule[];
+  // text-specific
+  placeholder?: string;
+  // number-specific
+  min?: number;
+  max?: number;
+  step?: number;
+  // multiple-choice / multi-select specific
+  options?: string[] | MultipleChoiceOption[];
+  // multi-select specific
+  minSelections?: number;
+  maxSelections?: number;
+}
+
+export interface TabularRow {
+  id: string;
+  label?: string;
+}
+
+export interface TabularQuestion extends BaseQuestion {
+  type: 'tabular';
+  columns: TabularColumn[];
+  rows: TabularRow[];
+}
+
+export type Question = TextQuestion | NumberQuestion | MultipleChoiceQuestion | MultiSelectQuestion | FileQuestion | TabularQuestion;

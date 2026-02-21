@@ -222,6 +222,19 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
             const errorMessage = uniqueErrors.length > 0
               ? uniqueErrors.map(e => e.message).join(', ')
               : undefined;
+
+            // Collect per-cell errors for tabular questions (synthetic IDs: questionId.rowId.colId)
+            const cellPrefix = question.id + '.';
+            const touchedCellErrors = touchedFields.has(question.id)
+              ? errors.filter(e => e.questionId.startsWith(cellPrefix))
+              : [];
+            const sectionCellErrors = isSectionValidated
+              ? sectionErrors.filter(e => e.questionId.startsWith(cellPrefix))
+              : [];
+            const allCellErrors = Array.from(
+              new Map([...touchedCellErrors, ...sectionCellErrors].map(e => [e.questionId + e.rule, e])).values()
+            );
+
             const currentAnswer = engine.getAnswer(question.id);
             const value: AnswerValue = currentAnswer === null ? undefined : currentAnswer;
 
@@ -231,6 +244,7 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
                   question={question}
                   value={value}
                   error={errorMessage}
+                  allErrors={allCellErrors.length > 0 ? allCellErrors : undefined}
                   onChange={(val) => handleAnswerChange(question.id, val)}
                 />
               </div>

@@ -1,4 +1,4 @@
-import type { Question, TextQuestion, NumberQuestion, MultipleChoiceQuestion, MultiSelectQuestion, FileQuestion } from '../../types/questions';
+import type { Question, TextQuestion, NumberQuestion, MultipleChoiceQuestion, MultiSelectQuestion, FileQuestion, TabularQuestion } from '../../types/questions';
 import type { Questionnaire, Section } from '../../types/questionnaire';
 import type { AnswerValue } from '../../types/answers';
 
@@ -50,6 +50,24 @@ export function createFileQuestion(overrides?: Partial<FileQuestion>): FileQuest
     type: 'file',
     label: 'Upload a file',
     required: false,
+    ...overrides,
+  };
+}
+
+export function createTabularQuestion(overrides?: Partial<TabularQuestion>): TabularQuestion {
+  return {
+    id: 'q1',
+    type: 'tabular',
+    label: 'Test Tabular Question',
+    required: false,
+    columns: [
+      { id: 'col1', label: 'Text Column', type: 'text' },
+      { id: 'col2', label: 'Number Column', type: 'number' },
+    ],
+    rows: [
+      { id: 'row1', label: 'Row 1' },
+      { id: 'row2', label: 'Row 2' },
+    ],
     ...overrides,
   };
 }

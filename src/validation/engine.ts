@@ -2,8 +2,13 @@ import type { Question } from '../types/questions';
 import type { AnswerValue, AnswerStore } from '../types/answers';
 import type { ValidationResult, ValidationError } from '../types/validation';
 import { validateValue } from './registry';
+import { validateTabularQuestion } from '../questions/tabularQuestion';
 
 export function validateQuestion(question: Question, value: AnswerValue): ValidationResult {
+  if (question.type === 'tabular') {
+    return validateTabularQuestion(value, question);
+  }
+
   const rules: typeof question.validation = [];
 
   const hasRequiredRule = question.validation?.some(r => r.type === 'required');

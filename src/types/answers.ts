@@ -6,7 +6,13 @@ export interface FileAnswerValue {
   height?: number;
 }
 
-export type AnswerValue = string | number | string[] | FileAnswerValue | null | undefined;
+// Cell value in a tabular answer (scalar types only, non-recursive)
+export type TabularCellValue = string | number | string[] | FileAnswerValue | null | undefined;
+
+// rowId -> columnId -> cell value
+export type TabularAnswerValue = Record<string, Record<string, TabularCellValue>>;
+
+export type AnswerValue = string | number | string[] | FileAnswerValue | TabularAnswerValue | null | undefined;
 
 export interface Answer {
   questionId: string;

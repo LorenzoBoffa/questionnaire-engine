@@ -572,6 +572,184 @@ describe('JSON Loader', () => {
     });
   });
 
+  describe('Tabular Question Parsing', () => {
+    const tabularQuestionnaire = {
+      id: 'tabular-test',
+      title: 'Tabular Test',
+      sections: [
+        {
+          id: 's1',
+          title: 'Vitals',
+          questions: [
+            {
+              id: 'vitals',
+              type: 'tabular',
+              label: 'Daily Vitals',
+              required: true,
+              columns: [
+                { id: 'weight', label: 'Weight (kg)', type: 'number', min: 0, max: 300, required: true },
+                { id: 'notes', label: 'Notes', type: 'text', placeholder: 'Optional notes' },
+                { id: 'mood', label: 'Mood', type: 'multiple-choice', options: ['Good', 'Bad', 'Neutral'] },
+                { id: 'symptoms', label: 'Symptoms', type: 'multi-select', options: ['Fever', 'Cough', 'Pain'] },
+              ],
+              rows: [
+                { id: 'day1', label: 'Day 1' },
+                { id: 'day2', label: 'Day 2' },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    it('parses tabular question type', () => {
+      const loader = createJSONLoader();
+      const q = loader.loadFromObject(tabularQuestionnaire);
+      const tq = q.sections[0].questions[0];
+      expect(tq.type).toBe('tabular');
+      expect(tq.id).toBe('vitals');
+      expect(tq.required).toBe(true);
+    });
+
+    it('parses columns correctly', () => {
+      const loader = createJSONLoader();
+      const q = loader.loadFromObject(tabularQuestionnaire);
+      const tq = q.sections[0].questions[0];
+      if (tq.type !== 'tabular') throw new Error('Expected tabular');
+      expect(tq.columns).toHaveLength(4);
+      expect(tq.columns[0]).toMatchObject({ id: 'weight', type: 'number', min: 0, max: 300, required: true });
+      expect(tq.columns[1]).toMatchObject({ id: 'notes', type: 'text', placeholder: 'Optional notes' });
+      expect(tq.columns[2]).toMatchObject({ id: 'mood', type: 'multiple-choice' });
+      expect(tq.columns[2].options).toEqual(['Good', 'Bad', 'Neutral']);
+      expect(tq.columns[3]).toMatchObject({ id: 'symptoms', type: 'multi-select' });
+      expect(tq.columns[3].options).toEqual(['Fever', 'Cough', 'Pain']);
+    });
+
+    it('parses rows correctly', () => {
+      const loader = createJSONLoader();
+      const q = loader.loadFromObject(tabularQuestionnaire);
+      const tq = q.sections[0].questions[0];
+      if (tq.type !== 'tabular') throw new Error('Expected tabular');
+      expect(tq.rows).toHaveLength(2);
+      expect(tq.rows[0]).toEqual({ id: 'day1', label: 'Day 1' });
+      expect(tq.rows[1]).toEqual({ id: 'day2', label: 'Day 2' });
+    });
+
+    it('parses rows without labels', () => {
+      const loader = createJSONLoader();
+      const q = loader.loadFromObject({
+        ...tabularQuestionnaire,
+        sections: [{
+          id: 's1', title: 'S', questions: [{
+            id: 'tbl', type: 'tabular', label: 'T',
+            columns: [{ id: 'c1', label: 'C1', type: 'text' }],
+            rows: [{ id: 'r1' }, { id: 'r2' }],
+          }],
+        }],
+      });
+      const tq = q.sections[0].questions[0];
+      if (tq.type !== 'tabular') throw new Error('Expected tabular');
+      expect(tq.rows[0].label).toBeUndefined();
+    });
+
+    it('parses columns with object options (value/label)', () => {
+      const loader = createJSONLoader();
+      const q = loader.loadFromObject({
+        id: 'test', title: 'T',
+        sections: [{
+          id: 's1', title: 'S', questions: [{
+            id: 'tbl', type: 'tabular', label: 'T',
+            columns: [{
+              id: 'cat', label: 'Category', type: 'multiple-choice',
+              options: [{ value: 'a', label: 'Option A' }, { value: 'b', label: 'Option B' }],
+            }],
+            rows: [{ id: 'r1' }],
+          }],
+        }],
+      });
+      const tq = q.sections[0].questions[0];
+      if (tq.type !== 'tabular') throw new Error('Expected tabular');
+      expect(tq.columns[0].options).toEqual([
+        { value: 'a', label: 'Option A' },
+        { value: 'b', label: 'Option B' },
+      ]);
+    });
+
+    it('rejects tabular with missing columns', () => {
+      const loader = createJSONLoader();
+      const result = loader.validateStructure({
+        id: 'test', title: 'T',
+        sections: [{ id: 's1', title: 'S', questions: [{ id: 'tbl', type: 'tabular', label: 'T', rows: [{ id: 'r1' }] }] }],
+      });
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.toLowerCase().includes('columns'))).toBe(true);
+    });
+
+    it('rejects tabular with empty columns array', () => {
+      const loader = createJSONLoader();
+      const result = loader.validateStructure({
+        id: 'test', title: 'T',
+        sections: [{ id: 's1', title: 'S', questions: [{ id: 'tbl', type: 'tabular', label: 'T', columns: [], rows: [{ id: 'r1' }] }] }],
+      });
+      expect(result.isValid).toBe(false);
+    });
+
+    it('rejects tabular with missing rows', () => {
+      const loader = createJSONLoader();
+      const result = loader.validateStructure({
+        id: 'test', title: 'T',
+        sections: [{ id: 's1', title: 'S', questions: [{ id: 'tbl', type: 'tabular', label: 'T', columns: [{ id: 'c1', label: 'C', type: 'text' }] }] }],
+      });
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.toLowerCase().includes('rows'))).toBe(true);
+    });
+
+    it('rejects tabular column with invalid type', () => {
+      const loader = createJSONLoader();
+      const result = loader.validateStructure({
+        id: 'test', title: 'T',
+        sections: [{
+          id: 's1', title: 'S', questions: [{
+            id: 'tbl', type: 'tabular', label: 'T',
+            columns: [{ id: 'c1', label: 'C', type: 'file' }],
+            rows: [{ id: 'r1' }],
+          }],
+        }],
+      });
+      expect(result.isValid).toBe(false);
+    });
+
+    it('rejects tabular column missing id', () => {
+      const loader = createJSONLoader();
+      const result = loader.validateStructure({
+        id: 'test', title: 'T',
+        sections: [{
+          id: 's1', title: 'S', questions: [{
+            id: 'tbl', type: 'tabular', label: 'T',
+            columns: [{ label: 'C', type: 'text' }],
+            rows: [{ id: 'r1' }],
+          }],
+        }],
+      });
+      expect(result.isValid).toBe(false);
+    });
+
+    it('rejects tabular row missing id', () => {
+      const loader = createJSONLoader();
+      const result = loader.validateStructure({
+        id: 'test', title: 'T',
+        sections: [{
+          id: 's1', title: 'S', questions: [{
+            id: 'tbl', type: 'tabular', label: 'T',
+            columns: [{ id: 'c1', label: 'C', type: 'text' }],
+            rows: [{ label: 'Row without id' }],
+          }],
+        }],
+      });
+      expect(result.isValid).toBe(false);
+    });
+  });
+
   describe('Section content and subtitles', () => {
     it('should not add content when section has only questions (retrocompat)', () => {
       const loader = createJSONLoader();

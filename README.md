@@ -8,7 +8,7 @@ The Questionnaire Engine is a flexible, framework-agnostic library that enables 
 
 ### Key Features
 
-- **Multiple Question Types**: Text, number, and multiple-choice questions (extensible)
+- **Multiple Question Types**: Text, number, multiple-choice, multi-select, file, and tabular questions (extensible)
 - **Sections and subtitles**: Group questions in sections; optionally show subtitles between questions via section `content`
 - **Real-time Validation**: Field-level validation with customizable rules
 - **Formula Engine**: Calculate values using arithmetic operations, comparisons, and built-in functions
