@@ -1,7 +1,7 @@
 import type { AnswerStore } from '../types/answers';
 import type { Formula, FormulaResult } from '../types/questionnaire';
 
-export type ExpressionValue = number | boolean | string | null;
+export type ExpressionValue = number | boolean | string | string[] | null;
 
 export interface EvaluationContext {
   answers: AnswerStore;
@@ -49,7 +49,7 @@ export interface UnaryOperationNode extends ExpressionNode {
   operand: ExpressionNode;
 }
 
-export type BinaryOperator = '+' | '-' | '*' | '/' | '>' | '<' | '>=' | '<=' | '==' | '!=' | '&&' | '||';
+export type BinaryOperator = '+' | '-' | '*' | '/' | '>' | '<' | '>=' | '<=' | '==' | '!=' | '&&' | '||' | 'includes';
 
 export type UnaryOperator = '-' | '+' | '!';
 

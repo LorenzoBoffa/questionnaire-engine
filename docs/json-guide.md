@@ -347,6 +347,20 @@ choice == "Yes"
 name != ""
 ```
 
+#### Array Operator: `includes`
+
+Tests whether a `multi-select` answer contains a specific string value. The left operand must be a field reference whose answer is an array (i.e. a `multi-select` question); the right operand must be a string literal.
+
+```
+symptoms includes 'Fever'
+interests includes "Travel"
+!(tags includes 'archived')
+symptoms includes 'Fever' && symptoms includes 'Cough'
+symptoms includes 'Fever' || symptoms includes 'Headache'
+```
+
+Returns `false` when the field is empty, `null`, or a non-array value.
+
 #### Logical Operators
 ```
 q1 > 18 && q2 < 65
@@ -424,6 +438,13 @@ Conditions use the same expression syntax as formulas:
 **Logical combinations:**
 ```json
 { "type": "show", "condition": "age >= 18 && has-license == 'Yes'", "target": "license-number" }
+```
+
+**Array membership with `includes` (for multi-select questions):**
+```json
+{ "type": "show", "condition": "symptoms includes 'Fever'", "target": "fever-details" }
+{ "type": "hide", "condition": "!(symptoms includes 'Fever')", "target": "fever-details" }
+{ "type": "show", "condition": "interests includes 'Travel' && interests includes 'Technology'", "target": "combined-note" }
 ```
 
 ## Scoring Configuration

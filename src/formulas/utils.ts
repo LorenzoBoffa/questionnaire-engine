@@ -25,7 +25,7 @@ export function resolveFieldReference(
   }
 
   if (Array.isArray(answer)) {
-    return answer.length;
+    return answer as string[];
   }
 
   return 0;
@@ -53,6 +53,7 @@ export function extractFieldReferences(expression: string): string[] {
   const fieldRefRegex = /\b([a-zA-Z_][a-zA-Z0-9_-]*)\b/g;
   const functionCallRegex = /\b([a-zA-Z_][a-zA-Z0-9_-]*)\s*\(/g;
 
+  const RESERVED_KEYWORDS = new Set(['true', 'false', 'includes']);
   const functionNames = new Set<string>();
   let match;
   while ((match = functionCallRegex.exec(expression)) !== null) {
@@ -61,7 +62,7 @@ export function extractFieldReferences(expression: string): string[] {
 
   while ((match = fieldRefRegex.exec(expression)) !== null) {
     const identifier = match[1];
-    if (!functionNames.has(identifier)) {
+    if (!functionNames.has(identifier) && !RESERVED_KEYWORDS.has(identifier)) {
       fieldRefs.add(identifier);
     }
   }

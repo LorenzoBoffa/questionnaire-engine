@@ -349,6 +349,40 @@
       ]
     },
     {
+      "id": "includes-demo-section",
+      "title": "Includes Operator Demo",
+      "questions": [
+        {
+          "id": "interests",
+          "type": "multi-select",
+          "label": "Select your areas of interest",
+          "required": false,
+          "options": ["Sports", "Music", "Travel", "Technology", "Cooking"]
+        },
+        {
+          "id": "travel-destination",
+          "type": "text",
+          "label": "Favourite travel destination (shown when Travel is selected)",
+          "required": false,
+          "visible": false
+        },
+        {
+          "id": "preferred-language",
+          "type": "text",
+          "label": "Preferred programming language (shown when Technology is selected)",
+          "required": false,
+          "visible": false
+        },
+        {
+          "id": "both-interest-note",
+          "type": "text",
+          "label": "You selected both Travel AND Technology – tell us more!",
+          "required": false,
+          "visible": false
+        }
+      ]
+    },
+    {
       "id": "formulas-test-section",
       "title": "Formulas Test Section",
       "questions": [
@@ -432,6 +466,36 @@
     }
   ],
   "actions": [
+    {
+      "type": "show",
+      "condition": "interests includes 'Travel'",
+      "target": "travel-destination"
+    },
+    {
+      "type": "hide",
+      "condition": "!(interests includes 'Travel')",
+      "target": "travel-destination"
+    },
+    {
+      "type": "show",
+      "condition": "interests includes 'Technology'",
+      "target": "preferred-language"
+    },
+    {
+      "type": "hide",
+      "condition": "!(interests includes 'Technology')",
+      "target": "preferred-language"
+    },
+    {
+      "type": "show",
+      "condition": "interests includes 'Travel' && interests includes 'Technology'",
+      "target": "both-interest-note"
+    },
+    {
+      "type": "hide",
+      "condition": "!(interests includes 'Travel' && interests includes 'Technology')",
+      "target": "both-interest-note"
+    },
     {
       "type": "show",
       "condition": "age-question >= 18",

@@ -33,6 +33,7 @@ Multi-select and file constraints can be specified in the `validation` array (re
 - **Field References**: Access other question answers by ID (e.g., `q1`, `question-id`)
 - **Arithmetic Operations**: `+`, `-`, `*`, `/`
 - **Comparison Operators**: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- **Array Operator**: `includes` — tests whether a multi-select answer contains a specific string value (e.g. `symptoms includes 'Fever'`)
 - **Logical Operators**: `&&`, `||`
 - **Unary Operations**: `-`, `+`, `!`
 - **Built-in Functions**: `sum(...)` - sums numeric values from arguments; `log(x)` - natural logarithm of x

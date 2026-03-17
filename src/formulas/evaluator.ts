@@ -252,6 +252,7 @@ class Parser {
       '>': 4,
       '<=': 4,
       '>=': 4,
+      'includes': 4,
       '+': 5,
       '-': 5,
       '*': 6,
@@ -354,6 +355,19 @@ class Parser {
         continue;
       }
 
+      if (this.expression.slice(this.position, this.position + 8) === 'includes') {
+        const after = this.expression[this.position + 8];
+        if (!after || isWhitespace(after) || !isAlphanumeric(after)) {
+          const opPrecedence = precedence['includes'];
+          if (opPrecedence < minPrecedence) break;
+          this.position += 8;
+          this.skipWhitespace();
+          const right = this.parseBinaryOperation(this.parsePrimary(), opPrecedence + 1);
+          left = { type: 'binaryOperation', operator: 'includes', left, right } as BinaryOperationNode;
+          continue;
+        }
+      }
+
       const binaryOps: BinaryOperationNode['operator'][] = ['+', '-', '*', '/', '>', '<'];
       if (binaryOps.includes(op as BinaryOperationNode['operator'])) {
         const opPrecedence = precedence[op];
@@ -443,6 +457,7 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): Express
         if (v === null) return 0;
         if (typeof v === 'boolean') return v ? 1 : 0;
         if (typeof v === 'string') { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+        if (Array.isArray(v)) return v.length;
         return 0;
       };
       const leftNum = toNum(left);
@@ -500,6 +515,11 @@ function evaluateNode(node: ExpressionNode, context: EvaluationContext): Express
           return leftBool && rightBool;
         case '||':
           return leftBool || rightBool;
+        case 'includes': {
+          if (!Array.isArray(left)) return false;
+          if (typeof right !== 'string') return false;
+          return left.includes(right);
+        }
         default:
           throw new Error(`Unknown operator: ${binNode.operator}`);
       }
