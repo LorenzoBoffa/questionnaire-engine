@@ -16,6 +16,8 @@ export function createStateManager(
   const answerStore = createAnswerStore();
   let questionnaire: Questionnaire | null = null;
   const questionRegistry = new Map<string, BaseQuestion>();
+  const sectionVisibility = new Map<string, boolean>();
+  const questionToSection = new Map<string, string>();
   const subscribers = new Set<StateChangeCallback>();
   let validationResult: ValidationResult | null = null;
   let formulaResults: FormulaResult[] = [];
@@ -23,7 +25,9 @@ export function createStateManager(
   function loadQuestionnaire(newQuestionnaire: Questionnaire): void {
     questionnaire = newQuestionnaire;
     questionRegistry.clear();
-    
+    sectionVisibility.clear();
+    questionToSection.clear();
+
     function registerQuestions(questions: Question[]): void {
       for (const question of questions) {
         const baseQuestion = createQuestion(question);
@@ -33,8 +37,12 @@ export function createStateManager(
 
     if (newQuestionnaire.sections) {
       for (const section of newQuestionnaire.sections) {
+        sectionVisibility.set(section.id, true);
         if (section.questions) {
           registerQuestions(section.questions);
+          for (const q of section.questions) {
+            questionToSection.set(q.id, section.id);
+          }
         }
       }
     }
@@ -53,6 +61,10 @@ export function createStateManager(
           const updated = setQuestionVisible(baseQuestion, visible);
           questionRegistry.set(questionId, updated);
         }
+      },
+      sectionVisibility,
+      (sectionId: string, visible: boolean) => {
+        sectionVisibility.set(sectionId, visible);
       }
     );
 
@@ -111,7 +123,12 @@ export function createStateManager(
   function getCurrentQuestions(): Question[] {
     const allQuestions = Array.from(questionRegistry.values());
     return allQuestions
-      .filter(q => q.visible !== false)
+      .filter(q => {
+        if (q.visible === false) return false;
+        const sid = questionToSection.get(q.id);
+        if (sid !== undefined && sectionVisibility.get(sid) === false) return false;
+        return true;
+      })
       .map(q => q.serialize());
   }
 
@@ -127,6 +144,10 @@ export function createStateManager(
             const updated = setQuestionVisible(baseQuestion, visible);
             questionRegistry.set(questionId, updated);
           }
+        },
+        sectionVisibility,
+        (sectionId: string, visible: boolean) => {
+          sectionVisibility.set(sectionId, visible);
         }
       );
       for (const action of questionnaire.actions) {
@@ -189,6 +210,7 @@ export function createStateManager(
       progress: getProgress(),
       errors: getValidationErrors(),
       formulaResults,
+      sectionVisibility: Object.fromEntries(sectionVisibility),
     };
   }
 
@@ -211,6 +233,10 @@ export function createStateManager(
             const updated = setQuestionVisible(baseQuestion, visible);
             questionRegistry.set(questionId, updated);
           }
+        },
+        sectionVisibility,
+        (sectionId: string, visible: boolean) => {
+          sectionVisibility.set(sectionId, visible);
         }
       );
       for (const action of questionnaire.actions) {

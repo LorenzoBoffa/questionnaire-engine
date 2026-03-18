@@ -397,9 +397,18 @@ Formulas can reference other formulas by their ID:
 
 ## Actions
 
-Actions control question visibility based on conditions:
+Actions control visibility based on conditions. By default they target individual questions; set `targetType: "section"` to target a whole section at once.
 
-### Show Action
+### Action Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | `"show"` \| `"hide"` | yes | Whether to show or hide the target when the condition is true |
+| `condition` | string | yes | Expression evaluated using the formula engine |
+| `target` | string | yes | ID of the question or section to affect |
+| `targetType` | `"question"` \| `"section"` | no | Defaults to `"question"` when omitted |
+
+### Show Action (question)
 Shows a question when condition is true:
 ```json
 {
@@ -409,7 +418,7 @@ Shows a question when condition is true:
 }
 ```
 
-### Hide Action
+### Hide Action (question)
 Hides a question when condition is true:
 ```json
 {
@@ -418,6 +427,23 @@ Hides a question when condition is true:
   "target": "adult-question"
 }
 ```
+
+### Section-level Show/Hide
+
+Setting `targetType: "section"` hides or shows every question inside that section in one shot. Hidden sections are excluded from `getCurrentQuestions()`, validation, and progress counting.
+
+```json
+{
+  "type": "show",
+  "condition": "extra-sections includes 'Medical History'",
+  "target": "medical-history-section",
+  "targetType": "section"
+}
+```
+
+**Hide-has-priority rule:** if both a `hide` and a `show` action target the same section, the `hide` action is evaluated first and its result is used; the `show` action is skipped.
+
+**`sectionVisibility` in engine state:** `engine.getState()` returns a `sectionVisibility` map (`Record<string, boolean>`) that reflects the current visibility of every section. You can use this to drive UI indicators or debug your configuration.
 
 ### Action Conditions
 
@@ -445,6 +471,12 @@ Conditions use the same expression syntax as formulas:
 { "type": "show", "condition": "symptoms includes 'Fever'", "target": "fever-details" }
 { "type": "hide", "condition": "!(symptoms includes 'Fever')", "target": "fever-details" }
 { "type": "show", "condition": "interests includes 'Travel' && interests includes 'Technology'", "target": "combined-note" }
+```
+
+**Section-level visibility driven by multi-select:**
+```json
+{ "type": "show", "condition": "extra-sections includes 'Medical History'", "target": "medical-history-section", "targetType": "section" }
+{ "type": "show", "condition": "extra-sections includes 'Lifestyle'", "target": "lifestyle-section", "targetType": "section" }
 ```
 
 ## Scoring Configuration
@@ -659,6 +691,12 @@ Scoring formulas can reference other scoring formulas by their `id`. The engine 
       "type": "hide",
       "condition": "age < 18",
       "target": "adult-email"
+    },
+    {
+      "type": "show",
+      "condition": "age >= 18",
+      "target": "section-2",
+      "targetType": "section"
     }
   ]
 }

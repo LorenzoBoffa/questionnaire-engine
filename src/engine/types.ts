@@ -27,6 +27,7 @@ export interface QuestionnaireEngine {
   hasAnswer(questionId: string): boolean;
   submit(): SubmitResult;
   calculateScore(scoringConfig: ScoringConfig, answers?: AnswerStore): ScoreResult[];
+  getState(): EngineState;
 }
 
 export type EngineCallback = (state: EngineState) => void;

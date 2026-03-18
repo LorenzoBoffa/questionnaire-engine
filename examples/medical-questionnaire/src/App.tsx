@@ -19,14 +19,7 @@ function App() {
         setState(newState);
       });
       
-      const initialState = {
-        questionnaire: questionnaireEngine.getQuestionnaire(),
-        answers: questionnaireEngine.getAllAnswers(),
-        progress: questionnaireEngine.getProgress(),
-        errors: questionnaireEngine.getValidationErrors(),
-        formulaResults: [],
-      };
-      setState(initialState);
+      setState(questionnaireEngine.getState());
       setEngine(questionnaireEngine);
 
       return () => {

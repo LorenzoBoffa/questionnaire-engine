@@ -243,6 +243,11 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
     return stateManager!.subscribe(callback);
   }
 
+  function getState(): EngineState {
+    ensureInitialized();
+    return stateManager!.getState();
+  }
+
   function getQuestion(questionId: string): Question | undefined {
     ensureInitialized();
     
@@ -384,5 +389,6 @@ export function createQuestionnaireEngine(): QuestionnaireEngine {
     hasAnswer,
     submit,
     calculateScore,
+    getState,
   };
 }

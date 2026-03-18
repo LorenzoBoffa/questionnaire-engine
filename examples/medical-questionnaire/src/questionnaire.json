@@ -383,6 +383,56 @@
       ]
     },
     {
+      "id": "section-visibility-demo",
+      "title": "Section Visibility Demo",
+      "questions": [
+        {
+          "id": "extra-sections",
+          "type": "multi-select",
+          "label": "Which additional sections would you like to complete?",
+          "required": false,
+          "options": ["Medical History", "Lifestyle"]
+        }
+      ]
+    },
+    {
+      "id": "medical-history-section",
+      "title": "Medical History",
+      "questions": [
+        {
+          "id": "past-surgeries",
+          "type": "text",
+          "label": "List any past surgeries (or 'None')",
+          "required": true
+        },
+        {
+          "id": "allergies",
+          "type": "text",
+          "label": "Known allergies (or 'None')",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": "lifestyle-section",
+      "title": "Lifestyle",
+      "questions": [
+        {
+          "id": "exercise-frequency",
+          "type": "multiple-choice",
+          "label": "How often do you exercise?",
+          "required": true,
+          "options": ["Daily", "Several times a week", "Rarely", "Never"]
+        },
+        {
+          "id": "diet-type",
+          "type": "text",
+          "label": "Describe your typical diet",
+          "required": false
+        }
+      ]
+    },
+    {
       "id": "formulas-test-section",
       "title": "Formulas Test Section",
       "questions": [
@@ -466,6 +516,18 @@
     }
   ],
   "actions": [
+    {
+      "type": "show",
+      "condition": "extra-sections includes 'Medical History'",
+      "target": "medical-history-section",
+      "targetType": "section"
+    },
+    {
+      "type": "show",
+      "condition": "extra-sections includes 'Lifestyle'",
+      "target": "lifestyle-section",
+      "targetType": "section"
+    },
     {
       "type": "show",
       "condition": "interests includes 'Travel'",

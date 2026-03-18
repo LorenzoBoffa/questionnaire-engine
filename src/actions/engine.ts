@@ -3,12 +3,15 @@ import type { AnswerStore } from '../types/answers';
 import type { BaseQuestion } from '../questions/base';
 import type { FormulaEngine } from '../formulas/types';
 import type { ActionEngine, ActionContext, ActionHandlerRegistry } from './types';
+import { evaluateCondition } from './functions/showHideAction';
 
 export function createActionEngine(
   formulaEngine: FormulaEngine,
   questionRegistry: Map<string, BaseQuestion>,
   actionRegistry: ActionHandlerRegistry,
-  onVisibilityChange?: (questionId: string, visible: boolean) => void
+  onVisibilityChange?: (questionId: string, visible: boolean) => void,
+  sectionVisibility?: Map<string, boolean>,
+  onSectionVisibilityChange?: (sectionId: string, visible: boolean) => void
 ): ActionEngine {
   const actions: Action[] = [];
 
@@ -21,11 +24,13 @@ export function createActionEngine(
   }
 
   function getActionsForQuestion(questionId: string): Action[] {
-    return actions.filter((action) => action.target === questionId);
+    return actions.filter((action) => action.target === questionId && action.targetType !== 'section');
   }
 
   function executeForQuestion(questionId: string, answers: AnswerStore, formulas?: Record<string, number>): void {
-    const relevantActions = getActionsForQuestion(questionId);
+    const relevantActions = actions.filter(
+      (action) => action.target === questionId && action.targetType !== 'section'
+    );
     if (relevantActions.length === 0) {
       return;
     }
@@ -36,6 +41,8 @@ export function createActionEngine(
       questionRegistry,
       onVisibilityChange,
       formulas,
+      sectionVisibility,
+      onSectionVisibilityChange,
     };
 
     const hideActions = relevantActions.filter((a) => a.type === 'hide');
@@ -57,21 +64,63 @@ export function createActionEngine(
     }
   }
 
+  function executeForSection(sectionId: string, answers: AnswerStore, formulas?: Record<string, number>): void {
+    const relevant = actions.filter(
+      (a) => a.target === sectionId && a.targetType === 'section'
+    );
+    if (relevant.length === 0) return;
+
+    const context: ActionContext = {
+      answers,
+      formulaEngine,
+      questionRegistry,
+      onVisibilityChange,
+      formulas,
+      sectionVisibility,
+      onSectionVisibilityChange,
+    };
+
+    const hideActions = relevant.filter((a) => a.type === 'hide');
+    const showActions = relevant.filter((a) => a.type === 'show');
+
+    for (const action of hideActions) {
+      const conditionResult = evaluateCondition(action, context);
+      const newVisible = !conditionResult;
+      if (onSectionVisibilityChange) onSectionVisibilityChange(sectionId, newVisible);
+      return;
+    }
+
+    for (const action of showActions) {
+      const conditionResult = evaluateCondition(action, context);
+      if (onSectionVisibilityChange) onSectionVisibilityChange(sectionId, conditionResult);
+    }
+  }
+
   function executeAll(answers: AnswerStore, formulas?: Record<string, number>): void {
     const affectedQuestions = new Set<string>();
-    
+    const affectedSections = new Set<string>();
+
     for (const action of actions) {
-      affectedQuestions.add(action.target);
+      if (action.targetType === 'section') {
+        affectedSections.add(action.target);
+      } else {
+        affectedQuestions.add(action.target);
+      }
     }
 
     for (const questionId of affectedQuestions) {
       executeForQuestion(questionId, answers, formulas);
+    }
+
+    for (const sectionId of affectedSections) {
+      executeForSection(sectionId, answers, formulas);
     }
   }
 
   return {
     executeAll,
     executeForQuestion,
+    executeForSection,
     getActionsForQuestion,
     registerAction,
     clearActions,

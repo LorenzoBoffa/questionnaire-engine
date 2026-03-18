@@ -41,15 +41,18 @@ Multi-select and file constraints can be specified in the `validation` array (re
 - **Parentheses**: Grouping for precedence
 
 ### Actions
-- **show**: Show a question when condition is true
-- **hide**: Hide a question when condition is true
+- **show**: Show a question or section when condition is true
+- **hide**: Hide a question or section when condition is true
 - Conditions use the formula engine for evaluation
+- Optional **`targetType`** field: `"question"` (default) or `"section"`. When set to `"section"`, the action hides/shows all questions inside that section at once, and those questions are excluded from `getCurrentQuestions()`, validation, and progress counting.
+- **Hide-has-priority**: if both `hide` and `show` target the same section, `hide` is evaluated first.
 
 ### State Management
 - Answer storage and retrieval
-- Progress tracking (answered vs total questions)
-- Real-time validation
+- Progress tracking (answered vs total visible questions, hidden-section questions excluded)
+- Real-time validation (hidden-section questions are not validated)
 - Formula result calculation
+- Section visibility tracking (`sectionVisibility: Record<string, boolean>` in `EngineState`)
 - Reactive state updates via subscription callbacks
 
 ### Scoring System
@@ -126,17 +129,18 @@ The result type is informational and doesn't affect calculation - all formulas r
 
 ### Engine API
 - `loadFromJSON(questionnaire)`: Load questionnaire from JSON
-- `getCurrentQuestions()`: Get visible questions
+- `getCurrentQuestions()`: Get visible questions (excludes questions whose section is hidden)
 - `setAnswer(questionId, value)`: Set answer for a question
 - `getAnswer(questionId)`: Get answer for a question
 - `getAllAnswers()`: Get all answers
-- `validate()`: Validate all answers
+- `validate()`: Validate all answers (only visible questions)
 - `getValidationErrors()`: Get validation errors
-- `getProgress()`: Get completion progress
+- `getProgress()`: Get completion progress (only visible questions counted)
 - `getFormulaResults()`: Get calculated formula results
+- `getState()`: Get full engine state including `sectionVisibility` map
 - `calculateScore(scoringConfig, answers?)`: Calculate scores from scoring configuration
 - `submit()`: Submit questionnaire and return answers with validation
-- `subscribe(callback)`: Subscribe to state changes
+- `subscribe(callback)`: Subscribe to state changes (callback receives `EngineState` including `sectionVisibility`)
 - `reset()`: Reset questionnaire state
 - `destroy()`: Clean up resources
 

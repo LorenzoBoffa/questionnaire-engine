@@ -31,6 +31,7 @@ export interface EngineState {
   progress: Progress;
   errors: ValidationError[];
   formulaResults: FormulaResult[];
+  sectionVisibility: Record<string, boolean>;
 }
 
 export interface StateManager {

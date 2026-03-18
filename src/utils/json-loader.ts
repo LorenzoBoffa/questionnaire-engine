@@ -1011,6 +1011,10 @@ function validateActionStructure(data: any): ValidationResult {
   const typeResult = validateActionType(data.type);
   if (!typeResult.isValid) errors.push(...typeResult.errors);
 
+  if (data.targetType !== undefined && data.targetType !== 'question' && data.targetType !== 'section') {
+    errors.push("action.targetType must be 'question' or 'section'");
+  }
+
   const conditionResult = validateActionCondition(data.condition);
   if (!conditionResult.isValid) errors.push(...conditionResult.errors);
 
@@ -1042,6 +1046,13 @@ function parseAction(data: any): Action {
     condition: convertToString(data.condition, 'action.condition'),
     target: convertToString(data.target, 'action.target'),
   };
+
+  if (data.targetType !== undefined) {
+    if (data.targetType !== 'question' && data.targetType !== 'section') {
+      throw new InvalidStructureError("action.targetType must be 'question' or 'section'");
+    }
+    action.targetType = data.targetType;
+  }
 
   return action;
 }
