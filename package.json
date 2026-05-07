@@ -1,6 +1,6 @@
 {
   "name": "questionnaire-engine",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Headless questionnaire engine with extensible question types, validation, formulas, and actions",
   "type": "module",
   "main": "src/index.ts",
