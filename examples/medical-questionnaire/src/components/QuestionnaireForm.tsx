@@ -205,6 +205,9 @@ function QuestionnaireForm({ engine, state }: QuestionnaireFormProps) {
       </div>
       <div key={currentSection.id} className="section">
         <h2 className="section-title">{currentSection.title}</h2>
+        {currentSection.subtitle && (
+          <p className="section-description">{currentSection.subtitle}</p>
+        )}
         <div className="questions">
           {sectionItems.map((item, index) => {
             if (isSubtitleItem(item)) {

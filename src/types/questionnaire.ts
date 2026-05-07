@@ -12,6 +12,7 @@ export type SectionContentItem = Question | SubtitleItem;
 export interface Section {
   id: string;
   title: string;
+  subtitle?: string;
   questions: Question[];
   content?: SectionContentItem[];
 }

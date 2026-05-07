@@ -1080,6 +1080,7 @@ function createActionParser(): ActionParser {
 function parseSection(data: any): Section {
   const id = convertToString(data.id, 'section.id');
   const title = convertToString(data.title, 'section.title');
+  const subtitle = typeof data.subtitle === 'string' ? data.subtitle : undefined;
 
   if (data.content !== undefined && Array.isArray(data.content)) {
     const content: SectionContentItem[] = [];
@@ -1106,7 +1107,7 @@ function parseSection(data: any): Section {
         }
       }
     }
-    return { id, title, questions, content };
+    return { id, title, subtitle, questions, content };
   }
 
   const questionsData = convertToArray(data.questions, 'section.questions');
@@ -1124,6 +1125,7 @@ function parseSection(data: any): Section {
   return {
     id,
     title,
+    subtitle,
     questions,
   };
 }

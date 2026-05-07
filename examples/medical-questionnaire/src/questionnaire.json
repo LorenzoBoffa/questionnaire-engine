@@ -112,6 +112,7 @@
     {
       "id": "subtitles-demo",
       "title": "Section with subtitles",
+      "subtitle": "This section demonstrates subtitle items inside the content array",
       "content": [
         { "id": "sub-q1", "type": "text", "label": "First question in this section", "required": false },
         { "type": "subtitle", "text": "Part B – More details" },

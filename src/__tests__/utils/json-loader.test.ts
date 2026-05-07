@@ -92,6 +92,79 @@ describe('JSON Loader', () => {
     });
   });
 
+  describe('section subtitle', () => {
+    it('should parse the optional subtitle field on a section (questions form)', () => {
+      const loader = createJSONLoader();
+      const data = {
+        id: 'sub-test',
+        title: 'Subtitle Test',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section title',
+            subtitle: 'Section subtitle',
+            questions: [{ id: 'q1', type: 'text', label: 'Q1' }],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(data);
+      expect(questionnaire.sections[0].subtitle).toBe('Section subtitle');
+    });
+
+    it('should parse the optional subtitle field on a section (content form)', () => {
+      const loader = createJSONLoader();
+      const data = {
+        id: 'sub-test-2',
+        title: 'Subtitle Test 2',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section title',
+            subtitle: 'Section subtitle',
+            content: [{ id: 'q1', type: 'text', label: 'Q1' }],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(data);
+      expect(questionnaire.sections[0].subtitle).toBe('Section subtitle');
+    });
+
+    it('should leave subtitle undefined when not provided', () => {
+      const loader = createJSONLoader();
+      const data = {
+        id: 'sub-test-3',
+        title: 'No Subtitle',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section title',
+            questions: [{ id: 'q1', type: 'text', label: 'Q1' }],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(data);
+      expect(questionnaire.sections[0].subtitle).toBeUndefined();
+    });
+
+    it('should ignore non-string subtitle values', () => {
+      const loader = createJSONLoader();
+      const data = {
+        id: 'sub-test-4',
+        title: 'Bad Subtitle',
+        sections: [
+          {
+            id: 's1',
+            title: 'Section title',
+            subtitle: 123,
+            questions: [{ id: 'q1', type: 'text', label: 'Q1' }],
+          },
+        ],
+      };
+      const questionnaire = loader.loadFromObject(data);
+      expect(questionnaire.sections[0].subtitle).toBeUndefined();
+    });
+  });
+
   describe('question metadata preservation', () => {
     const questionnaireWithMetadata = {
       id: 'meta-test',
