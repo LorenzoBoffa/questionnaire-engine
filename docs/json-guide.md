@@ -22,9 +22,18 @@ Sections group related questions together (can be used for pagination for exampl
 {
   "id": "section-1",
   "title": "Section Title",
+  "subtitle": "Optional descriptive text shown under the title",
   "questions": [...]
 }
 ```
+
+Section properties:
+
+- `id` (string, required): Unique identifier of the section.
+- `title` (string, required): Section title shown in the UI.
+- `subtitle` (string, optional): Descriptive text that the UI can render under the title. Purely presentational — does not participate in validation, formulas or actions.
+- `questions` (array, required unless `content` is provided): Array of question objects.
+- `content` (array, optional): See "content with subtitles" below.
 
 ### Optional: content with subtitles
 
@@ -639,6 +648,7 @@ Scoring formulas can reference other scoring formulas by their `id`. The engine 
     {
       "id": "section-1",
       "title": "Personal Information",
+      "subtitle": "Tell us a few basic details about yourself",
       "questions": [
         {
           "id": "age",
